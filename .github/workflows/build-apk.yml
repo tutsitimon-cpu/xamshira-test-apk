@@ -68,7 +68,7 @@ jobs:
       - name: AAB yig'ish (Play Market uchun imzolangan versiya)
         if: steps.check_release.outputs.ready == 'true'
         env:
-          RELEASE_KEYSTORE_PATH: release.keystore
+          RELEASE_KEYSTORE_PATH: ../release.keystore
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
