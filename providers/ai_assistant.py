@@ -69,7 +69,7 @@ async def _call_gemini(messages):
                     json={
                         "contents": contents,
                         "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
-                        "generationConfig": {"maxOutputTokens": 1024},
+                        "generationConfig": {"maxOutputTokens": 2048},
                     },
                 )
                 resp.raise_for_status()
