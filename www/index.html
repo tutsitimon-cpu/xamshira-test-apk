@@ -808,10 +808,11 @@ function submitPhoneForCheck(){
 }
 
 async function initiateAndOpenPayment(tier, provider){
-  if(!BACKEND_URL || !state.userPhone) return;
+  if(!BACKEND_URL || !state.userPhone){ alert('DEBUG: telefon raqami yoki BACKEND_URL yo\'q — phone='+state.userPhone); return; }
   try{
     const activeSpTier = SPECIALTIES.find(sp=>sp.key===state.activeSpecialtyKey);
     const group = (activeSpTier && activeSpTier.group === 'vrach') ? 'vrach' : 'orta';
+    alert('DEBUG 1: so\'rov yuborilmoqda...');
     const res = await fetch(`${BACKEND_URL}/api/subscribe/init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -822,18 +823,24 @@ async function initiateAndOpenPayment(tier, provider){
         return_url: `${BACKEND_URL}/health`,
       }),
     });
+    alert('DEBUG 2: javob keldi, status='+res.status);
     const data = await res.json();
+    alert('DEBUG 3: JSON o\'qildi: '+JSON.stringify(data).slice(0,300));
     if(!res.ok || !data.pay_urls) throw new Error('no pay_urls');
     const url = data.pay_urls[provider];
+    alert('DEBUG 4: url='+url);
     if(!url){ alert(t().payment_init_error); return; } // masalan ATMOS hali sozlanmagan
     if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser){
+      alert('DEBUG 5: Browser plagini orqali ochilmoqda...');
       const { Browser } = window.Capacitor.Plugins;
       await Browser.open({ url });
+      alert('DEBUG 6: Browser.open() tugadi');
     } else {
+      alert('DEBUG 5b: Browser plagini yo\'q, window.open ishlatilmoqda');
       window.open(url, '_blank'); // brauzer preview (Capacitor mavjud bo'lmaganda)
     }
   }catch(e){
-    alert(t().payment_init_error);
+    alert('DEBUG XATO: '+e.message);
   }
 }
 
