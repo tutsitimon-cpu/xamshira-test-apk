@@ -826,7 +826,7 @@ async function initiateAndOpenPayment(tier, provider){
     if(!res.ok || !data.pay_urls) throw new Error('no pay_urls');
     const url = data.pay_urls[provider];
     if(!url){ alert(t().payment_init_error); return; } // masalan ATMOS hali sozlanmagan
-    window.open(url, '_blank');
+    window.open(url, '_system');
   }catch(e){
     alert(t().payment_init_error);
   }
