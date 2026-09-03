@@ -812,7 +812,9 @@ async function initiateAndOpenPayment(tier, provider){
   try{
     const activeSpTier = SPECIALTIES.find(sp=>sp.key===state.activeSpecialtyKey);
     const group = (activeSpTier && activeSpTier.group === 'vrach') ? 'vrach' : 'orta';
-    alert('DEBUG 1: so\'rov yuborilmoqda...');
+    alert('DEBUG 1: so\'rov yuborilmoqda... (45 soniyagacha kutiladi)');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(()=>controller.abort(), 45000);
     const res = await fetch(`${BACKEND_URL}/api/subscribe/init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -822,7 +824,9 @@ async function initiateAndOpenPayment(tier, provider){
         toifa_key: state.toifa ? state.toifa.key : '',
         return_url: `${BACKEND_URL}/health`,
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     alert('DEBUG 2: javob keldi, status='+res.status);
     const data = await res.json();
     alert('DEBUG 3: JSON o\'qildi: '+JSON.stringify(data).slice(0,300));
@@ -840,7 +844,7 @@ async function initiateAndOpenPayment(tier, provider){
       window.open(url, '_blank'); // brauzer preview (Capacitor mavjud bo'lmaganda)
     }
   }catch(e){
-    alert('DEBUG XATO: '+e.message);
+    alert('DEBUG XATO: '+(e.name==='AbortError' ? 'VAQT TUGADI (45s ichida javob kelmadi)' : e.name+': '+e.message));
   }
 }
 
