@@ -811,15 +811,6 @@ function submitPhoneForCheck(){
 
 async function initiateAndOpenPayment(tier, provider){
   if(!BACKEND_URL || !state.userPhone) return;
-  // TO'LIQ TEKSHIRUV — avval oddiy GET so'rovini sinaymiz, keyin asosiy POST'ni.
-  // Bu, muammo aynan qaysi turdagi so'rovda ekanini ko'rsatadi.
-  let healthResult = '';
-  try{
-    const h = await fetch(`${BACKEND_URL}/health`);
-    healthResult = 'GET /health: OK, status=' + h.status;
-  }catch(e){
-    healthResult = 'GET /health XATO: ' + e.name + ': ' + e.message;
-  }
   try{
     const activeSpTier = SPECIALTIES.find(sp=>sp.key===state.activeSpecialtyKey);
     const group = (activeSpTier && activeSpTier.group === 'vrach') ? 'vrach' : 'orta';
@@ -836,8 +827,7 @@ async function initiateAndOpenPayment(tier, provider){
     const data = await res.json();
     if(!res.ok || !data.pay_urls) throw new Error('no pay_urls');
     const url = data.pay_urls[provider];
-    if(!url){ alert(healthResult + ' | POST OK, lekin url bo\'sh'); return; }
-    alert(healthResult + ' | POST OK, url=' + url.slice(0,50));
+    if(!url){ alert(t().payment_init_error); return; } // masalan ATMOS hali sozlanmagan
     if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser){
       const { Browser } = window.Capacitor.Plugins;
       await Browser.open({ url });
@@ -845,7 +835,7 @@ async function initiateAndOpenPayment(tier, provider){
       window.open(url, '_blank'); // brauzer preview (Capacitor mavjud bo'lmaganda)
     }
   }catch(e){
-    alert(healthResult + ' | POST XATO: ' + e.name + ': ' + e.message);
+    alert(t().payment_init_error);
   }
 }
 
@@ -949,7 +939,7 @@ function saveFreeUsage(){
 // Fill this in once your Render backend is live, e.g. "https://xamshira-payment.onrender.com"
 // Used for the News section (and later, real payments) — until it's set, those
 // features simply show a "not connected yet" message instead of failing.
-const BACKEND_URL = "https://xamshira-backend.onrender.com";
+const BACKEND_URL = "http://178.104.70.56";
 const SUPPORT_BOT_USERNAME = "TibbiyYordamchiUZ_bot"; // foydalanuvchi qo'llab-quvvatlash uchun Telegram bot
 
 let state = {
