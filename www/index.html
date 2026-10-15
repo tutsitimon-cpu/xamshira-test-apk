@@ -888,9 +888,23 @@ async function checkSubscriptionByPhone(phone){
 }
 // --- Telefon raqamini SMS orqali tasdiqlash ---
 // Bitta obuna qilingan raqamni, bir nechta kishi bo'lishib ishlatmasligi uchun.
+// SMS tasdiqlash hozircha o'chirilgan: raqam kiritilsa, darhol qabul qilinadi.
+// Keyinroq SMS xizmati ulanganda, true qilinsa, eski SMS oqimi qayta ishlaydi.
+const SMS_VERIFY_ENABLED = false;
 async function submitPhoneForCheck(){
   const phone = state.phoneInput.trim();
   if(!phone) return;
+  if(!SMS_VERIFY_ENABLED){
+    const digits = phone.replace(/\D/g,'');
+    if(digits.length < 9){
+      state.phoneVerifyError = ({uz_lat:"Telefon raqamini to'liq kiriting", uz_cyr:"Телефон рақамини тўлиқ киритинг", ru:"Введите полный номер телефона", en:"Enter the full phone number"})[state.lang] || "Telefon raqamini to'liq kiriting";
+      render(); return;
+    }
+    const full = digits.length === 9 ? '998' + digits : digits;
+    finishPhoneConfirm(full);
+    render();
+    return;
+  }
   state.phoneVerifyBusy = true;
   state.phoneVerifyError = '';
   render();
