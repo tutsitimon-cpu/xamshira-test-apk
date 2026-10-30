@@ -1,0 +1,43 @@
+name: Ovozli fayllarni yaratish
+
+# Qo'lda ishga tushiriladi: Actions -> "Ovozli fayllarni yaratish" -> Run workflow
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Bir ishga tushirishda nechta fayl yaratilsin (hammasi uchun bo'sh qoldiring)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  audio:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: audio-v1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Release mavjudligini tekshirish
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "Ovozli fayllar" --notes "Ilova ichidagi Tinglash rejimi uchun MP3 fayllar. Avtomatik yaratiladi."
+
+      - name: Oldingi manifestni olish
+        run: |
+          mkdir -p prev
+          gh release download "$TAG" -p manifest.json -D prev || echo "{}" > prev/manifest.json
+
+      - name: Ovozga aylantirish (Azure)
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+        run: python3 tools/gen_audio.py www/index.html www/data out prev/manifest.json ${{ github.event.inputs.limit }}
+
+      - name: Release'ga yuklash
+        run: |
+          cd out
+          ls *.mp3 >/dev/null 2>&1 && gh release upload "$TAG" *.mp3 --clobber || echo "Yangi mp3 yo'q"
+          gh release upload "$TAG" manifest.json --clobber

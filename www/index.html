@@ -208,6 +208,21 @@
   .calc-input{ width:100%; padding:10px 12px; border-radius:var(--radius-s); border:1px solid var(--line); font-family:'IBM Plex Sans',sans-serif; font-size:14px; background:var(--paper-raised-2); color:var(--ink); }
   .calc-input::placeholder{ color:var(--ink); opacity:0.35; }
   .calc-result{ margin-top:12px; padding:12px 14px; background:var(--accent-soft); border-radius:var(--radius-s); font-family:'IBM Plex Mono', monospace; font-size:15px; font-weight:700; color:var(--accent); }
+  .listen-tab{ flex:1; padding:11px; border-radius:var(--radius-m); border:1px solid var(--line); background:var(--paper-raised); color:inherit; font-weight:600; font-size:13.5px; cursor:pointer; }
+  .listen-tab.on{ border-color:var(--accent); color:var(--accent); background:rgba(45,212,191,0.10); }
+  .listen-card{ min-height:150px; }
+  .listen-counter{ font-size:12px; opacity:0.6; margin-bottom:10px; letter-spacing:0.02em; }
+  .listen-q{ font-size:15.5px; line-height:1.5; font-weight:600; }
+  .listen-a{ margin-top:12px; font-size:14px; color:var(--accent); line-height:1.45; }
+  .listen-lock{ margin-top:14px; font-size:13px; opacity:0.8; }
+  .listen-controls{ display:flex; align-items:center; justify-content:center; gap:22px; margin:18px 0 8px; }
+  .listen-btn{ width:54px; height:54px; border-radius:50%; border:1px solid var(--line); background:var(--paper-raised); color:inherit; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .listen-btn.main{ width:76px; height:76px; background:var(--accent); color:var(--ink-solid); border:none; box-shadow:0 6px 18px rgba(45,212,191,0.30); }
+  .listen-status{ text-align:center; font-size:12.5px; opacity:0.7; margin-bottom:6px; }
+  .listen-status.err{ color:var(--danger,#F26D5F); opacity:1; }
+  .listen-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .listen-chip{ padding:7px 11px; border-radius:999px; border:1px solid var(--line); background:transparent; color:inherit; font-size:12.5px; cursor:pointer; }
+  .listen-chip.on{ border-color:var(--accent); color:var(--accent); }
   .calc-disclaimer{ font-size:11px; opacity:0.5; line-height:1.5; margin:4px 0 18px; padding:0 2px; }
 
   /* ---- voice practice ---- */
@@ -1649,6 +1664,229 @@ function renderToifalar(root){
   renderBottomNav(root, 'toifalar');
 }
 
+// ===================== TINGLASH REJIMI (audio) =====================
+// Savol-javoblar oldindan Azure o'zbekcha ovozi bilan MP3 ga aylantirilgan va
+// GitHub Release'da saqlanadi. Ilova ularni ketma-ket ijro etadi; ekran o'chganda
+// ham to'xtamasligi uchun MediaSession plagini (foreground service) ishlatiladi.
+const AUDIO_BASE = 'https://github.com/tutsitimon-cpu/xamshira-test-apk/releases/download/audio-v1/';
+const LISTEN_FREE = 3; // obunasiz foydalanuvchi har bir ro'yxatdan nechta yozuvni tinglay oladi
+const LISTEN_RATES = [0.8, 1, 1.25, 1.5];
+const LT = {
+  uz_lat:{ title:"Tinglash rejimi", sub:"Savol va javoblarni yo'lda eshitib boring", oral:"Og'zaki", test:"Test", of:"dan",
+    question:"Savol", answer:"Javob", correct:"To'g'ri javob", speed:"Tezlik", restart:"Boshidan",
+    note:"Ovoz o'zbek tilida. Ekran o'chgan bo'lsa ham eshitiladi. Internet kerak.",
+    err:"Ovozni yuklab bo'lmadi. Internetni tekshiring yoki birozdan keyin qayta urinib ko'ring.",
+    loading:"Yuklanmoqda…", lock:"Davomini tinglash uchun obuna kerak" },
+  uz_cyr:{ title:"Тинглаш режими", sub:"Савол ва жавобларни йўлда эшитиб боринг", oral:"Оғзаки", test:"Тест", of:"дан",
+    question:"Савол", answer:"Жавоб", correct:"Тўғри жавоб", speed:"Тезлик", restart:"Бошидан",
+    note:"Овоз ўзбек тилида. Экран ўчган бўлса ҳам эшитилади. Интернет керак.",
+    err:"Овозни юклаб бўлмади. Интернетни текширинг ёки бироздан кейин қайта уриниб кўринг.",
+    loading:"Юкланмоқда…", lock:"Давомини тинглаш учун обуна керак" },
+  ru:{ title:"Режим прослушивания", sub:"Слушайте вопросы и ответы в дороге", oral:"Устные", test:"Тест", of:"из",
+    question:"Вопрос", answer:"Ответ", correct:"Правильный ответ", speed:"Скорость", restart:"С начала",
+    note:"Озвучка на узбекском языке. Работает и при выключенном экране. Нужен интернет.",
+    err:"Не удалось загрузить аудио. Проверьте интернет или попробуйте позже.",
+    loading:"Загрузка…", lock:"Чтобы слушать дальше, нужна подписка" },
+  en:{ title:"Listening mode", sub:"Listen to questions and answers on the go", oral:"Oral", test:"Test", of:"of",
+    question:"Question", answer:"Answer", correct:"Correct answer", speed:"Speed", restart:"From start",
+    note:"Audio is in Uzbek. Keeps playing with the screen off. Needs internet.",
+    err:"Could not load audio. Check your internet connection or try again later.",
+    loading:"Loading…", lock:"A subscription is needed to keep listening" }
+};
+function lt(){ return LT[state.lang] || LT.uz_lat; }
+
+const listen = { source:'oral', idx:0, playing:false, loading:false, error:'', rate:1, items:[], fails:0, specialty:'', toifaKey:'' };
+let listenAudio = null;
+
+function mediaSessionPlugin(){
+  return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.MediaSession) || null;
+}
+
+function listenItemsFor(source){
+  if(source === 'oral'){
+    return (state.toifa.oral || []).map(x => ({ file:`oral-${state.toifa.key}-${x.id}.mp3`, raw:x, kind:'oral' }));
+  }
+  const data = SPECIALTY_DATA_CACHE[state.activeSpecialtyKey] || [];
+  return data.map(x => ({ file:`test-${state.activeSpecialtyKey}-${x.id}.mp3`, raw:x, kind:'test' }));
+}
+
+function listenPosKey(){ return `listen_pos:${state.activeSpecialtyKey}:${listen.source === 'oral' ? state.toifa.key : 'test'}`; }
+
+async function openListen(){
+  state.screen = 'listen';
+  listen.specialty = state.activeSpecialtyKey; listen.toifaKey = state.toifa.key;
+  render();
+  await selectListenSource(listen.source, true);
+}
+
+async function selectListenSource(source, keepIfSame){
+  if(keepIfSame && listen.items.length && listen.source === source && listen.specialty === state.activeSpecialtyKey
+     && listen.toifaKey === state.toifa.key){ render(); return; }
+  stopListen();
+  listen.source = source; listen.error = '';
+  if(source === 'test' && !SPECIALTY_DATA_CACHE[state.activeSpecialtyKey]){
+    listen.loading = true; render();
+    try{ await loadSpecialtyData(state.activeSpecialtyKey); }catch(e){ listen.error = lt().err; }
+    listen.loading = false;
+  }
+  listen.items = listenItemsFor(source);
+  listen.specialty = state.activeSpecialtyKey; listen.toifaKey = state.toifa.key;
+  const saved = parseInt(await storageGet(listenPosKey()) || '0', 10);
+  listen.idx = (saved >= 0 && saved < listen.items.length) ? saved : 0;
+  render();
+}
+
+function listenLocked(idx){
+  return !hasSpecialtyAccess(state.activeSpecialtyKey) && idx >= LISTEN_FREE;
+}
+
+function ensureAudio(){
+  if(listenAudio) return listenAudio;
+  listenAudio = new Audio();
+  listenAudio.preload = 'auto';
+  listenAudio.addEventListener('ended', ()=>{ listen.fails = 0; listenGo(listen.idx + 1, true); });
+  listenAudio.addEventListener('playing', ()=>{ listen.loading = false; listen.playing = true; listen.error=''; syncMediaSession(); if(state.screen==='listen') render(); });
+  listenAudio.addEventListener('waiting', ()=>{ listen.loading = true; if(state.screen==='listen') render(); });
+  listenAudio.addEventListener('pause', ()=>{ listen.playing = false; syncMediaSession(); if(state.screen==='listen') render(); });
+  listenAudio.addEventListener('error', ()=>{
+    listen.loading = false; listen.playing = false; listen.fails++;
+    if(listen.fails <= 2 && listen.idx + 1 < listen.items.length){ listenGo(listen.idx + 1, true); return; } // bitta fayl yo'q bo'lsa, keyingisiga o'tamiz
+    listen.error = lt().err; listen.fails = 0; syncMediaSession();
+    if(state.screen==='listen') render();
+  });
+  const ms = mediaSessionPlugin();
+  if(ms){
+    try{
+      ms.setActionHandler({ action:'play' }, ()=>listenPlay());
+      ms.setActionHandler({ action:'pause' }, ()=>listenPause());
+      ms.setActionHandler({ action:'nexttrack' }, ()=>listenGo(listen.idx + 1, true));
+      ms.setActionHandler({ action:'previoustrack' }, ()=>listenGo(listen.idx - 1, true));
+      ms.setActionHandler({ action:'stop' }, ()=>stopListen());
+    }catch(e){}
+  }
+  return listenAudio;
+}
+
+function listenTitle(item){
+  const x = item.raw;
+  const L = (state.lang === 'uz_cyr' && x.uz_cyr) ? x.uz_cyr : ((x[state.lang]) || x.uz_lat);
+  return (L && L.q) || '';
+}
+
+function syncMediaSession(){
+  const ms = mediaSessionPlugin();
+  if(!ms) return;
+  const item = listen.items[listen.idx];
+  try{
+    if(item){
+      ms.setMetadata({ title: `${lt().question} ${listen.idx+1}: ${listenTitle(item)}`.slice(0,120),
+        artist: 'Tibbiy Yordamchi', album: listen.source === 'oral' ? (state.toifa['title_'+state.lang] || '') : lt().test });
+    }
+    ms.setPlaybackState({ playbackState: listen.playing ? 'playing' : (listenAudio && listenAudio.src ? 'paused' : 'none') });
+  }catch(e){}
+}
+
+function listenGo(idx, autoplay){
+  if(idx < 0) idx = 0;
+  if(idx >= listen.items.length){ stopListen(); listen.idx = 0; storageSet(listenPosKey(), '0'); render(); return; }
+  if(listenLocked(idx)){
+    stopListen(); listen.idx = idx; storageSet(listenPosKey(), String(idx));
+    state.showPaywall = true; render(); return;
+  }
+  listen.idx = idx; listen.error = '';
+  storageSet(listenPosKey(), String(idx));
+  const a = ensureAudio();
+  a.src = AUDIO_BASE + listen.items[idx].file;
+  a.playbackRate = listen.rate;
+  if(autoplay){ listen.loading = true; const p = a.play(); if(p && p.catch) p.catch(()=>{}); }
+  syncMediaSession();
+  if(state.screen==='listen') render();
+}
+
+function listenPlay(){
+  if(!listen.items.length) return;
+  if(listenLocked(listen.idx)){ state.showPaywall = true; render(); return; }
+  const a = ensureAudio();
+  const want = AUDIO_BASE + listen.items[listen.idx].file;
+  if(a.src !== want){ listenGo(listen.idx, true); return; }
+  a.playbackRate = listen.rate;
+  listen.loading = true; render();
+  const p = a.play(); if(p && p.catch) p.catch(()=>{});
+}
+
+function listenPause(){ if(listenAudio) listenAudio.pause(); }
+
+function stopListen(){
+  if(listenAudio){ listenAudio.pause(); listenAudio.removeAttribute('src'); try{ listenAudio.load(); }catch(e){} }
+  listen.playing = false; listen.loading = false;
+  const ms = mediaSessionPlugin();
+  if(ms){ try{ ms.setPlaybackState({ playbackState:'none' }); }catch(e){} }
+}
+
+function renderListen(root){
+  renderTopbar(root, true, ()=>{ state.screen='toifa'; render(); });
+  const content = el('div',{class:'content'});
+  const h = el('div',{class:'section-label'}); h.appendChild(txt(lt().title + ' · ' + (state.toifa['title_'+state.lang]||''))); content.appendChild(h);
+
+  // Manba tanlash: Og'zaki / Test
+  const tabs = el('div',{style:'display:flex; gap:8px; margin-bottom:14px;'});
+  [['oral', lt().oral], ['test', lt().test]].forEach(([key,label])=>{
+    const on = listen.source === key;
+    const b = el('button',{class:'listen-tab'+(on?' on':''), onclick:()=>selectListenSource(key)});
+    b.appendChild(txt(label)); tabs.appendChild(b);
+  });
+  content.appendChild(tabs);
+
+  const card = el('div',{class:'q-card listen-card'});
+  const item = listen.items[listen.idx];
+  const counter = el('div',{class:'listen-counter'});
+  counter.appendChild(txt(listen.items.length ? `${lt().question} ${listen.idx+1} / ${listen.items.length}` : (listen.loading ? lt().loading : '—')));
+  card.appendChild(counter);
+  if(item){
+    const q = el('div',{class:'listen-q'}); q.appendChild(txt(listenTitle(item))); card.appendChild(q);
+    if(item.kind === 'test'){
+      const x = item.raw; const L = (state.lang==='uz_cyr' && x.uz_cyr) ? x.uz_cyr : (x[state.lang] || x.uz_lat);
+      const ans = el('div',{class:'listen-a'}); ans.appendChild(txt(lt().correct + ': ' + ((L.opts||x.uz_lat.opts)[x.correct_index]||''))); card.appendChild(ans);
+    }
+    if(listenLocked(listen.idx)){
+      const lock = el('div',{class:'listen-lock'}); lock.appendChild(txt('🔒 ' + lt().lock)); card.appendChild(lock);
+    }
+  }
+  content.appendChild(card);
+
+  // Boshqaruv tugmalari
+  const ctr = el('div',{class:'listen-controls'});
+  const prev = el('button',{class:'listen-btn', onclick:()=>listenGo(listen.idx-1, listen.playing), html:'<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>'});
+  const playing = listen.playing || listen.loading;
+  const main = el('button',{class:'listen-btn main', onclick:()=> playing ? listenPause() : listenPlay(),
+    html: playing ? '<svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>'
+                  : '<svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>'});
+  const next = el('button',{class:'listen-btn', onclick:()=>listenGo(listen.idx+1, listen.playing), html:'<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>'});
+  ctr.appendChild(prev); ctr.appendChild(main); ctr.appendChild(next);
+  content.appendChild(ctr);
+  if(listen.loading && listen.items.length){
+    const ld = el('div',{class:'listen-status'}); ld.appendChild(txt(lt().loading)); content.appendChild(ld);
+  }
+  if(listen.error){
+    const er = el('div',{class:'listen-status err'}); er.appendChild(txt(listen.error)); content.appendChild(er);
+  }
+
+  // Tezlik va "boshidan"
+  const row = el('div',{class:'listen-row'});
+  const sp = el('span',{style:'opacity:0.6; font-size:12.5px; margin-right:6px;'}); sp.appendChild(txt(lt().speed)); row.appendChild(sp);
+  LISTEN_RATES.forEach(r=>{
+    const b = el('button',{class:'listen-chip'+(listen.rate===r?' on':''), onclick:()=>{ listen.rate=r; if(listenAudio) listenAudio.playbackRate=r; render(); }});
+    b.appendChild(txt(r+'×')); row.appendChild(b);
+  });
+  const rs = el('button',{class:'listen-chip', style:'margin-left:auto;', onclick:()=>listenGo(0, listen.playing)}); rs.appendChild(txt('⟲ ' + lt().restart)); row.appendChild(rs);
+  content.appendChild(row);
+
+  const note = el('div',{class:'calc-disclaimer', style:'margin-top:14px; text-align:center;'}); note.appendChild(txt(lt().note)); content.appendChild(note);
+  root.appendChild(content);
+  renderBottomNav(root, 'toifalar');
+}
+// =================== /TINGLASH REJIMI ===================
+
 function renderToifaScreen(root){
   renderTopbar(root, true, goToifalar);
   const content = el('div',{class:'content'});
@@ -1697,6 +1935,18 @@ function renderToifaScreen(root){
     const examChev = el('div',{class:'chev'}); examChev.appendChild(txt('›')); examOption.appendChild(examChev);
   }
   content.appendChild(examOption);
+
+  { // Tinglash rejimi
+    const lo = el('div',{class:'ticket', style:tierBadgeStyle('--grad-1'), onclick:openListen});
+    const lb = el('div',{class:'badge', html:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 14v-2a9 9 0 0118 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="3" y="14" width="4" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="17" y="14" width="4" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>'});
+    lo.appendChild(lb);
+    const lbody = el('div',{class:'ticket-body'});
+    const ltl = el('div',{class:'ticket-title'}); ltl.appendChild(txt(lt().title)); lbody.appendChild(ltl);
+    const lsb = el('div',{class:'ticket-sub'}); lsb.appendChild(txt(lt().sub)); lbody.appendChild(lsb);
+    lo.appendChild(lbody);
+    const lch = el('div',{class:'chev'}); lch.appendChild(txt(listen.playing ? '🔊' : '›')); lo.appendChild(lch);
+    content.appendChild(lo);
+  }
 
   const flaggedCount = flaggedCountFor(state.activeSpecialtyKey);
   if(flaggedCount > 0){
@@ -2619,6 +2869,7 @@ function setupBackButton(){
     if(state.showCodeInput){ state.showCodeInput=false; render(); return; }
     if(state.examActive){ if(confirm(t().exam_cancel_confirm)) cancelExam(); return; }
 
+    if(state.screen === 'listen'){ state.screen='toifa'; render(); return; } // tinglash davom etadi
     // 2) Agar bosh sahifada bo'lmasak — bosh sahifaga qaytamiz
     if(state.screen !== 'home' && state.screen !== 'pin_lock'){
       goHome();
@@ -3780,6 +4031,7 @@ function render(){
   else if(state.screen==='toifalar') renderToifalar(root);
   else if(state.screen==='toifa') renderToifaScreen(root);
   else if(state.screen==='quiz') renderQuiz(root);
+  else if(state.screen==='listen') renderListen(root);
   else if(state.screen==='result') renderResult(root);
   else if(state.screen==='exam-result') renderExamResult(root);
   else if(state.screen==='referral') renderReferral(root);
