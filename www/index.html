@@ -2894,6 +2894,62 @@ function setupBackButton(){
   });
 }
 
+
+// ===================== ILOVA ICHIDA YANGILANISH (Google Play In-App Updates) =====================
+// Play Market'da yangi versiya chiqsa, ilovaga kirganda "Yangi versiya mavjud" oynasi chiqadi.
+// FORCE_UPDATE_BELOW: shu versionCode dan eski versiyalar majburiy yangilanadi (0 = hech qachon majburiy emas).
+const FORCE_UPDATE_BELOW = 0;
+const UPD_T = {
+  uz_lat:{ title:"Yangi versiya mavjud", body:"Ilovaning yangi versiyasi chiqdi: yangi imkoniyatlar va tuzatishlar. Yangilab oling.", now:"Yangilash", later:"Keyinroq", force:"Davom etish uchun ilovani yangilang." },
+  uz_cyr:{ title:"Янги версия мавжуд", body:"Илованинг янги версияси чиқди: янги имкониятлар ва тузатишлар. Янгилаб олинг.", now:"Янгилаш", later:"Кейинроқ", force:"Давом этиш учун иловани янгиланг." },
+  ru:{ title:"Доступна новая версия", body:"Вышла новая версия приложения с улучшениями и исправлениями. Обновите его.", now:"Обновить", later:"Позже", force:"Чтобы продолжить, обновите приложение." },
+  en:{ title:"New version available", body:"A new version of the app is out with improvements and fixes. Please update.", now:"Update", later:"Later", force:"Please update the app to continue." }
+};
+const appUpdate = { available:false, forced:false, dismissed:false, info:null };
+function appUpdatePlugin(){ return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppUpdate) || null; }
+
+async function checkForAppUpdate(){
+  const AU = appUpdatePlugin();
+  if(!AU) return; // brauzerda mavjud emas
+  try{
+    const info = await AU.getAppUpdateInfo();
+    appUpdate.info = info;
+    if(info && Number(info.updateAvailability) === 2){ // UPDATE_AVAILABLE
+      appUpdate.available = true;
+      const cur = parseInt(info.currentVersionCode || '0', 10);
+      appUpdate.forced = FORCE_UPDATE_BELOW > 0 && cur > 0 && cur < FORCE_UPDATE_BELOW;
+      if(state.screen !== 'pin_lock' && state.screen !== 'pin_loading') render();
+    }
+  }catch(e){ /* Play xizmatlari yo'q yoki internet yo'q — jim o'tamiz */ }
+}
+
+async function startAppUpdate(){
+  const AU = appUpdatePlugin();
+  if(!AU) return;
+  try{
+    if(appUpdate.info && appUpdate.info.immediateUpdateAllowed){ await AU.performImmediateUpdate(); return; }
+  }catch(e){ /* quyidagi zaxira usulga o'tamiz */ }
+  try{ await AU.openAppStore(); }catch(e){}
+}
+
+function renderAppUpdateModal(root){
+  if(!appUpdate.available || (appUpdate.dismissed && !appUpdate.forced)) return;
+  if(state.screen === 'pin_lock' || state.screen === 'pin_loading' || state.screen === 'onboarding') return;
+  const T = UPD_T[state.lang] || UPD_T.uz_lat;
+  const overlay = el('div',{class:'box-modal-overlay'});
+  const modal = el('div',{class:'box-modal'});
+  const emoji = document.createElement('div'); emoji.className='emoji'; emoji.textContent='⬆️'; modal.appendChild(emoji);
+  const h3 = document.createElement('h3'); h3.appendChild(txt(T.title)); modal.appendChild(h3);
+  const p = document.createElement('p'); p.appendChild(txt(appUpdate.forced ? T.force : T.body)); modal.appendChild(p);
+  const b = el('button',{class:'next-btn', onclick:startAppUpdate}); b.appendChild(txt(T.now)); modal.appendChild(b);
+  if(!appUpdate.forced){
+    const later = el('div',{style:'text-align:center; margin-top:12px; font-size:13px; opacity:0.7; cursor:pointer;', onclick:()=>{ appUpdate.dismissed = true; render(); }});
+    later.appendChild(txt(T.later)); modal.appendChild(later);
+  }
+  overlay.appendChild(modal); root.appendChild(overlay);
+}
+// =================== /ILOVA ICHIDA YANGILANISH ===================
+
 async function initPinFlow(){
   const stored = await storageGet(PIN_STORAGE_KEY);
   if(stored){
@@ -2915,6 +2971,7 @@ async function initPinFlow(){
   if(state.userPhone) checkSubscriptionByPhone(state.userPhone); // fon rejimida, kutmasdan davom etadi
   setupDailyReminder(); // fon rejimida — kutmasdan davom etadi
   setupBackButton();
+  checkForAppUpdate(); // fon rejimida
   state.screen = 'pin_lock';
   render();
 }
@@ -4053,6 +4110,7 @@ function render(){
   if(state.showPaywall && state.screen !== 'quiz'){
     root.appendChild(renderPaywall());
   }
+  renderAppUpdateModal(root);
 
   if(state.showBoxModal && state.lastBoxResult){
     const overlay = el('div',{class:'box-modal-overlay', onclick:(e)=>{ if(e.target===overlay){ state.showBoxModal=false; render(); } }});
