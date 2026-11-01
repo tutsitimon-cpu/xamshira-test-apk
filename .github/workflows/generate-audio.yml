@@ -15,6 +15,7 @@ permissions:
 jobs:
   audio:
     runs-on: ubuntu-latest
+    timeout-minutes: 300
     env:
       GH_TOKEN: ${{ github.token }}
       TAG: audio-v1
@@ -37,6 +38,7 @@ jobs:
         run: python3 tools/gen_audio.py www/index.html www/data out prev/manifest.json ${{ github.event.inputs.limit }}
 
       - name: Release'ga yuklash
+        if: always()
         run: |
           cd out
           ls *.mp3 >/dev/null 2>&1 && gh release upload "$TAG" *.mp3 --clobber || echo "Yangi mp3 yo'q"

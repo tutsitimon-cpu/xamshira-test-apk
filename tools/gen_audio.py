@@ -20,6 +20,10 @@ URL = f"https://{REGION}.tts.speech.microsoft.com/cognitiveservices/v1"
 FORMAT = "audio-24khz-48kbitrate-mono-mp3"
 
 
+class QuotaStop(Exception):
+    pass
+
+
 def synth(ssml_text):
     req = urllib.request.Request(URL, data=ssml_text.encode("utf-8"), method="POST", headers={
         "Ocp-Apim-Subscription-Key": KEY,
@@ -33,6 +37,9 @@ def synth(ssml_text):
                 return r.read()
         except urllib.error.HTTPError as e:
             body = e.read()[:300]
+            if e.code == 403 or (e.code == 429 and attempt >= 3):
+                # bepul limit tugagan bo'lishi mumkin — tayyor fayllarni saqlab, to'xtaymiz
+                raise QuotaStop(f"{e.code}: {body!r}")
             if e.code in (429, 500, 502, 503, 504):
                 wait = 10 * (attempt + 1)
                 print(f"  {e.code}, {wait}s kutamiz...", flush=True)
@@ -57,17 +64,25 @@ def main():
     todo = [it for it in items if old.get(it["name"]) != it["hash"]]
     print(f"Jami {len(items)}, yaratiladigan {len(todo)}, bu safar ko'pi bilan {limit}", flush=True)
     done = 0; chars = 0
+    names = {it["name"] for it in items}
+    def save_manifest():
+        m = {k: v for k, v in manifest.items() if k in names}
+        json.dump(m, open(os.path.join(out_dir, "manifest.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
     for it in todo[:limit]:
-        audio = synth(it["ssml"])
+        try:
+            audio = synth(it["ssml"])
+        except QuotaStop as e:
+            print(f"Azure limiti tugadi yoki rad etdi ({e}). Tayyorlari saqlanadi, qolgani keyingi safar.", flush=True)
+            break
         open(os.path.join(out_dir, it["name"]), "wb").write(audio)
         manifest[it["name"]] = it["hash"]
         done += 1; chars += it["chars"]
         print(f"[{done}] {it['name']} {len(audio)//1024} KB", flush=True)
-        time.sleep(0.4)
+        if done % 20 == 0:
+            save_manifest()
+        time.sleep(2.5)  # bepul tarif: daqiqasiga 20 so'rovdan oshmaslik uchun
     # ro'yxatdan chiqib ketgan fayllarni manifestdan olib tashlaymiz
-    names = {it["name"] for it in items}
-    manifest = {k: v for k, v in manifest.items() if k in names}
-    json.dump(manifest, open(os.path.join(out_dir, "manifest.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
+    save_manifest()
     left = len([it for it in items if manifest.get(it["name"]) != it["hash"]])
     print(f"Tayyor: {done} ta fayl, {chars} belgi. Qolgani: {left}", flush=True)
 
