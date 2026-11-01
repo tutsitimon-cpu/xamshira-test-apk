@@ -1766,12 +1766,22 @@ function ensureAudio(){
   listenAudio = new Audio();
   listenAudio.preload = 'auto';
   listenAudio.addEventListener('ended', ()=>{ listen.fails = 0; listenGo(listen.idx + 1, true); });
-  listenAudio.addEventListener('playing', ()=>{ listen.loading = false; listen.playing = true; listen.error=''; syncMediaSession(); if(state.screen==='listen') render(); });
+  listenAudio.addEventListener('playing', ()=>{ listen.fails = 0; listen.loading = false; listen.playing = true; listen.error=''; syncMediaSession(); if(state.screen==='listen') render(); });
   listenAudio.addEventListener('waiting', ()=>{ listen.loading = true; if(state.screen==='listen') render(); });
   listenAudio.addEventListener('pause', ()=>{ listen.playing = false; syncMediaSession(); if(state.screen==='listen') render(); });
   listenAudio.addEventListener('error', ()=>{
-    listen.loading = false; listen.playing = false; listen.fails++;
-    if(listen.fails <= 2 && listen.idx + 1 < listen.items.length){ listenGo(listen.idx + 1, true); return; } // bitta fayl yo'q bo'lsa, keyingisiga o'tamiz
+    listen.loading = false; listen.playing = false;
+    // Avval faylni ikkinchi manzildan (boshqa release'dan) urinib ko'ramiz
+    const cur = listen.items[listen.idx];
+    if(cur && !listen.altTried){
+      listen.altTried = true;
+      const alt = (audioUrl(cur.file).indexOf('/audio-v2/') >= 0 ? AUDIO_BASE : AUDIO_BASE_2) + cur.file;
+      listen.loading = true; listenAudio.src = alt; listenAudio.playbackRate = listen.rate;
+      const pp = listenAudio.play(); if(pp && pp.catch) pp.catch(()=>{});
+      return;
+    }
+    listen.fails++;
+    if(listen.fails <= 30 && listen.idx + 1 < listen.items.length){ listenGo(listen.idx + 1, true); return; } // ovozi hali tayyor bo'lmagan savollarni o'tkazib yuboramiz
     listen.error = lt().err; listen.fails = 0; syncMediaSession();
     if(state.screen==='listen') render();
   });
@@ -1817,7 +1827,7 @@ function listenGo(idx, autoplay){
     stopListen(); listen.idx = idx; storageSet(listenPosKey(), String(idx));
     state.showPaywall = true; render(); return;
   }
-  listen.idx = idx; listen.error = '';
+  listen.idx = idx; listen.error = ''; listen.altTried = false;
   storageSet(listenPosKey(), String(idx));
   const a = ensureAudio();
   a.src = audioUrl(listen.items[idx].file);
@@ -1832,7 +1842,7 @@ function listenPlay(){
   if(listenLocked(listen.idx)){ state.showPaywall = true; render(); return; }
   const a = ensureAudio();
   const want = audioUrl(listen.items[listen.idx].file);
-  if(a.src !== want){ listenGo(listen.idx, true); return; }
+  if(a.src !== want && !listen.altTried){ listenGo(listen.idx, true); return; }
   a.playbackRate = listen.rate;
   listen.loading = true; render();
   const p = a.play(); if(p && p.catch) p.catch(()=>{});
@@ -2918,8 +2928,9 @@ function setupBackButton(){
 
 // ===================== ILOVA ICHIDA YANGILANISH (Google Play In-App Updates) =====================
 // Play Market'da yangi versiya chiqsa, ilovaga kirganda "Yangi versiya mavjud" oynasi chiqadi.
-// FORCE_UPDATE_BELOW: shu versionCode dan eski versiyalar majburiy yangilanadi (0 = hech qachon majburiy emas).
-const FORCE_UPDATE_BELOW = 0;
+// Yangilanish majburiy: Play Market'da yangi versiya bo'lsa, foydalanuvchi yangilamaguncha ilovadan foydalana olmaydi.
+const FORCE_UPDATE_ALWAYS = true;
+const FORCE_UPDATE_BELOW = 0; // (zaxira) shu versionCode dan eskilari majburiy yangilanadi
 const UPD_T = {
   uz_lat:{ title:"Yangi versiya mavjud", body:"Ilovaning yangi versiyasi chiqdi: yangi imkoniyatlar va tuzatishlar. Yangilab oling.", now:"Yangilash", later:"Keyinroq", force:"Davom etish uchun ilovani yangilang." },
   uz_cyr:{ title:"Янги версия мавжуд", body:"Илованинг янги версияси чиқди: янги имкониятлар ва тузатишлар. Янгилаб олинг.", now:"Янгилаш", later:"Кейинроқ", force:"Давом этиш учун иловани янгиланг." },
@@ -2938,7 +2949,12 @@ async function checkForAppUpdate(){
     if(info && Number(info.updateAvailability) === 2){ // UPDATE_AVAILABLE
       appUpdate.available = true;
       const cur = parseInt(info.currentVersionCode || '0', 10);
-      appUpdate.forced = FORCE_UPDATE_BELOW > 0 && cur > 0 && cur < FORCE_UPDATE_BELOW;
+      appUpdate.forced = FORCE_UPDATE_ALWAYS || (FORCE_UPDATE_BELOW > 0 && cur > 0 && cur < FORCE_UPDATE_BELOW);
+      // Majburiy bo'lsa — Google Play'ning to'liq ekranli yangilash oynasini darhol ochamiz
+      if(appUpdate.forced && info.immediateUpdateAllowed && !appUpdate.autoStarted){
+        appUpdate.autoStarted = true;
+        try{ await AU.performImmediateUpdate(); }catch(e){}
+      }
       if(state.screen !== 'pin_lock' && state.screen !== 'pin_loading') render();
     }
   }catch(e){ /* Play xizmatlari yo'q yoki internet yo'q — jim o'tamiz */ }
@@ -2993,6 +3009,10 @@ async function initPinFlow(){
   setupDailyReminder(); // fon rejimida — kutmasdan davom etadi
   setupBackButton();
   checkForAppUpdate(); // fon rejimida
+  try{ // ilova fondan qaytganda ham tekshiramiz (yangilashni bekor qilgan bo'lsa, qayta taklif qilinadi)
+    const AppP = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+    if(AppP && AppP.addListener) AppP.addListener('resume', ()=>{ appUpdate.autoStarted = false; checkForAppUpdate(); });
+  }catch(e){}
   state.screen = 'pin_lock';
   render();
 }
