@@ -1779,10 +1779,13 @@ function syncMediaSession(){
   const item = listen.items[listen.idx];
   try{
     if(item){
+      // artwork bo'sh massiv bo'lishi SHART: plagin (Android) artwork berilmasa NullPointerException bilan ilovani yopadi
       ms.setMetadata({ title: `${lt().question} ${listen.idx+1}: ${listenTitle(item)}`.slice(0,120),
-        artist: 'Tibbiy Yordamchi', album: listen.source === 'oral' ? (state.toifa['title_'+state.lang] || '') : lt().test });
+        artist: 'Tibbiy Yordamchi', album: listen.source === 'oral' ? (state.toifa['title_'+state.lang] || '') : lt().test,
+        artwork: [] }).catch(()=>{});
     }
-    ms.setPlaybackState({ playbackState: listen.playing ? 'playing' : (listenAudio && listenAudio.src ? 'paused' : 'none') });
+    const p2 = ms.setPlaybackState({ playbackState: listen.playing ? 'playing' : (listenAudio && listenAudio.src ? 'paused' : 'none') });
+    if(p2 && p2.catch) p2.catch(()=>{});
   }catch(e){}
 }
 
