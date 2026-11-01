@@ -2969,7 +2969,29 @@ const UPD_T = {
 const appUpdate = { available:false, forced:false, dismissed:false, info:null };
 function appUpdatePlugin(){ return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppUpdate) || null; }
 
+// Zaxira tekshiruv: Google Play ma'lumoti kech yangilansa ham, bizning fayldagi eng kichik ruxsat etilgan versiyadan
+// eski ilova majburiy yangilanadi. Faylni yangi versiya Play'da chiqqandan KEYIN o'zgartirish kerak.
+const APP_VERSION_URL = 'https://raw.githubusercontent.com/tutsitimon-cpu/xamshira-test-apk/main/app-version.json';
+async function checkRemoteMinVersion(){
+  try{
+    const AppP = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+    if(!AppP || !AppP.getInfo) return;
+    const info = await AppP.getInfo();
+    const cur = parseInt(info && info.build || '0', 10);
+    if(!(cur > 0)) return;
+    const res = await fetch(APP_VERSION_URL + '?t=' + Date.now(), { cache:'no-store' });
+    if(!res.ok) return;
+    const cfg = await res.json();
+    const min = parseInt(cfg.min_version_code || '0', 10);
+    if(min > 0 && cur < min){
+      appUpdate.available = true; appUpdate.forced = true;
+      if(state.screen !== 'pin_lock' && state.screen !== 'pin_loading') render();
+    }
+  }catch(e){ /* internet yo'q — jim o'tamiz */ }
+}
+
 async function checkForAppUpdate(){
+  checkRemoteMinVersion();
   const AU = appUpdatePlugin();
   if(!AU) return; // brauzerda mavjud emas
   try{
@@ -2991,11 +3013,12 @@ async function checkForAppUpdate(){
 
 async function startAppUpdate(){
   const AU = appUpdatePlugin();
-  if(!AU) return;
+  if(!AU){ try{ window.open('market://details?id=uz.xamshira.test', '_system'); }catch(e){} return; }
   try{
     if(appUpdate.info && appUpdate.info.immediateUpdateAllowed){ await AU.performImmediateUpdate(); return; }
   }catch(e){ /* quyidagi zaxira usulga o'tamiz */ }
-  try{ await AU.openAppStore(); }catch(e){}
+  try{ await AU.openAppStore(); return; }catch(e){}
+  try{ window.open('market://details?id=uz.xamshira.test', '_system'); }catch(e){}
 }
 
 function renderAppUpdateModal(root){
