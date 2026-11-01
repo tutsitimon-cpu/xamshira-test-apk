@@ -10,7 +10,9 @@ import json, re, sys, hashlib
 from xml.sax.saxutils import escape
 
 VOICE = "uz-UZ-MadinaNeural"
-ORAL_SCRIPTS = [("oliy-toifa", "oral-data-oliy"), ("1-toifa", "oral-data-birinchi"), ("2-toifa", "oral-data-ikkinchi")]
+ORAL_SCRIPTS = [("oliy-toifa", "oral-data-oliy"), ("1-toifa", "oral-data-birinchi"), ("2-toifa", "oral-data-ikkinchi"),
+                # patronaj: faqat yangi (boshqa bankdan olinmagan) savollar; nom "audio" maydonidan olinadi
+                ("oliy-toifa", "oral-data-pat-oliy"), ("1-toifa", "oral-data-pat-birinchi"), ("2-toifa", "oral-data-pat-ikkinchi")]
 TEST_SPECIALTIES = ["hamshiralik-ishi", "hamshiralik-patronaj"]
 
 
@@ -43,10 +45,12 @@ def build(index_html, data_dir):
     for key, script_id in ORAL_SCRIPTS:
         m = re.search(r'<script id="%s" type="application/json">(.*?)</script>' % script_id, s, re.S)
         for x in json.loads(m.group(1)):
+            if x.get("src"):
+                continue  # ovozi asl bankdagi fayldan olinadi
             q, a = x["uz_lat"]["q"], x["uz_lat"]["a"]
             body = (f"Savol. <break time='300ms'/>{para(clean_lines(q), 400)}"
                     f"<break time='900ms'/>Javob. <break time='300ms'/>{para(clean_lines(a))}")
-            items.append({"name": f"oral-{key}-{x['id']}.mp3", "ssml": ssml(body), "chars": len(q) + len(a)})
+            items.append({"name": x.get("audio") or f"oral-{key}-{x['id']}.mp3", "ssml": ssml(body), "chars": len(q) + len(a)})
     for sp in TEST_SPECIALTIES:
         data = json.load(open(f"{data_dir}/{sp}.json", encoding="utf-8"))
         for x in data:
