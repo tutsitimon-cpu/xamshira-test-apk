@@ -355,7 +355,8 @@
 // preview build uchun), aks holda www/data/KEY.json faylidan fetch qiladi
 // (Capacitor ishlab chiqarish qurilmasi uchun — fayl hajmini kichik saqlaydi).
 const SPECIALTY_DATA_CACHE = {};
-const SPECIALTY_COUNTS = { 'hamshiralik-ishi': 422, 'sanepid-parazitolog': 487, 'rentgen-laborant': 432 }; // faqat ko'rsatish uchun, tez
+const ORAL_SPECIALTIES = ['hamshiralik-ishi', 'hamshiralik-patronaj']; // og'zaki savollar banki umumiy (toifa bo'yicha)
+const SPECIALTY_COUNTS = { 'hamshiralik-ishi': 422, 'hamshiralik-patronaj': 377, 'sanepid-parazitolog': 487, 'rentgen-laborant': 432 }; // faqat ko'rsatish uchun, tez
 
 async function loadSpecialtyData(key){
   if(SPECIALTY_DATA_CACHE[key]) return SPECIALTY_DATA_CACHE[key];
@@ -389,7 +390,7 @@ const SPECIALTIES = [
   { key:'oliy-hamshiralik', name:"Oliy hamshiralik ishi", available:false, group:'orta' },
   { key:'davolash-ishi', name:"Davolash ishi", available:false, group:'orta' },
   { key:'akusherlik-ishi', name:"Akusherlik ishi", available:false, group:'orta' },
-  { key:'hamshiralik-patronaj', name:"Hamshiralik ishi (patronaj hamshiralari)", available:false, group:'orta' },
+  { key:'hamshiralik-patronaj', name:"Hamshiralik ishi (patronaj hamshiralari)", available:true, group:'orta' },
   { key:'lab-tashxis', name:"Laboratoriya tashxisi (Sanepidqo'm laboratoriyalaridan tashqari)", available:false, group:'orta' },
   { key:'tp-sanitar', name:"Tibbiy-profilaktika ishi (Sanitar vrach yordamchilari uchun)", available:false, group:'orta' },
   { key:'tp-epidemiolog', name:"Tibbiy-profilaktika ishi (Epidemiolog vrach yordamchilari uchun)", available:false, group:'orta' },
@@ -2393,7 +2394,7 @@ function renderQuiz(root){
   }
 
   if(state.mode === 'ogzaki'){
-    if(state.activeSpecialtyKey !== 'hamshiralik-ishi'){
+    if(!ORAL_SPECIALTIES.includes(state.activeSpecialtyKey)){
       const emptyCard = el('div',{class:'q-card'});
       const p = document.createElement('div');
       p.style.textAlign='center'; p.style.padding='30px 10px'; p.style.opacity='0.6'; p.style.fontSize='13.5px'; p.style.lineHeight='1.6';

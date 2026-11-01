@@ -11,7 +11,7 @@ from xml.sax.saxutils import escape
 
 VOICE = "uz-UZ-MadinaNeural"
 ORAL_SCRIPTS = [("oliy-toifa", "oral-data-oliy"), ("1-toifa", "oral-data-birinchi"), ("2-toifa", "oral-data-ikkinchi")]
-TEST_SPECIALTIES = ["hamshiralik-ishi"]
+TEST_SPECIALTIES = ["hamshiralik-ishi", "hamshiralik-patronaj"]
 
 
 def clean_lines(text):
