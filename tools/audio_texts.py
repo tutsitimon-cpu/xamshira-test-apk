@@ -66,3 +66,11 @@ def build(index_html, data_dir):
 if __name__ == "__main__":
     items = build(sys.argv[1], sys.argv[2])
     print(len(items), "ta fayl,", sum(i["chars"] for i in items), "belgi")
+
+
+# GitHub bitta release'da ko'pi bilan 1000 ta fayl saqlaydi, shuning uchun fayllar ikki release'ga bo'linadi.
+# Ilova ichidagi audioUrl() ham xuddi shu qoidadan foydalanadi.
+def release_for(name):
+    if "hamshiralik-patronaj" in name or re.match(r"^oral-.+-5\d{3}\.mp3$", name):
+        return "audio-v2"
+    return "audio-v1"

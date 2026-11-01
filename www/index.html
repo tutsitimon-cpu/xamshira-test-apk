@@ -1685,6 +1685,11 @@ function renderToifalar(root){
 // GitHub Release'da saqlanadi. Ilova ularni ketma-ket ijro etadi; ekran o'chganda
 // ham to'xtamasligi uchun MediaSession plagini (foreground service) ishlatiladi.
 const AUDIO_BASE = 'https://github.com/tutsitimon-cpu/xamshira-test-apk/releases/download/audio-v1/';
+const AUDIO_BASE_2 = 'https://github.com/tutsitimon-cpu/xamshira-test-apk/releases/download/audio-v2/';
+// GitHub bitta release'da 1000 tagacha fayl saqlaydi — patronaj fayllari ikkinchi release'da (tools/audio_texts.py release_for bilan bir xil qoida)
+function audioUrl(file){
+  return ((file.indexOf('hamshiralik-patronaj') >= 0 || /^oral-.+-5\d{3}\.mp3$/.test(file)) ? AUDIO_BASE_2 : AUDIO_BASE) + file;
+}
 const LISTEN_FREE = 3; // obunasiz foydalanuvchi har bir ro'yxatdan nechta yozuvni tinglay oladi
 const LISTEN_RATES = [0.8, 1, 1.25, 1.5];
 const LT = {
@@ -1815,7 +1820,7 @@ function listenGo(idx, autoplay){
   listen.idx = idx; listen.error = '';
   storageSet(listenPosKey(), String(idx));
   const a = ensureAudio();
-  a.src = AUDIO_BASE + listen.items[idx].file;
+  a.src = audioUrl(listen.items[idx].file);
   a.playbackRate = listen.rate;
   if(autoplay){ listen.loading = true; const p = a.play(); if(p && p.catch) p.catch(()=>{}); }
   syncMediaSession();
@@ -1826,7 +1831,7 @@ function listenPlay(){
   if(!listen.items.length) return;
   if(listenLocked(listen.idx)){ state.showPaywall = true; render(); return; }
   const a = ensureAudio();
-  const want = AUDIO_BASE + listen.items[listen.idx].file;
+  const want = audioUrl(listen.items[listen.idx].file);
   if(a.src !== want){ listenGo(listen.idx, true); return; }
   a.playbackRate = listen.rate;
   listen.loading = true; render();

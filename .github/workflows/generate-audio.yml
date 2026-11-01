@@ -22,16 +22,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Release mavjudligini tekshirish
+      - name: Release'larni tayyorlash
         run: |
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "Ovozli fayllar" --notes "Ilova ichidagi Tinglash rejimi uchun MP3 fayllar. Avtomatik yaratiladi."
+          gh release view audio-v2 >/dev/null 2>&1 || gh release create audio-v2 --title "Ovozli fayllar (2)" --notes "Tinglash rejimi uchun MP3 fayllar (davomi). Avtomatik yaratiladi."
+
+      - name: Fayllarni to'g'ri release'ga ko'chirish
+        run: |
+          mkdir -p mig
+          gh release view "$TAG" --json assets --jq '.assets[].name' > mig/v1.txt
+          python3 -c "import sys; sys.path.insert(0,'tools'); from audio_texts import release_for; [print(n) for n in open('mig/v1.txt').read().split() if n.endswith('.mp3') and release_for(n)!='audio-v1']" > mig/move.txt
+          echo "Ko'chiriladigan: $(wc -l < mig/move.txt)"
+          while read -r f; do
+            [ -n "$f" ] || continue
+            gh release download "$TAG" -p "$f" -D mig --clobber && \
+            gh release upload audio-v2 "mig/$f" --clobber && \
+            gh release delete-asset "$TAG" "$f" -y
+            sleep 1
+          done < mig/move.txt
 
       - name: Oldingi manifestni olish
         run: |
           mkdir -p prev
           gh release download "$TAG" -p manifest.json -D prev || echo "{}" > prev/manifest.json
-          # Manifestda bor, lekin release'ga yuklanmay qolgan fayllarni qayta yaratish uchun ro'yxatdan chiqaramiz
-          gh release view "$TAG" --json assets --jq '.assets[].name' > prev/assets.txt
+          # Manifestda bor, lekin release'larga yuklanmay qolgan fayllarni qayta yaratish uchun ro'yxatdan chiqaramiz
+          { gh release view "$TAG" --json assets --jq '.assets[].name'; gh release view audio-v2 --json assets --jq '.assets[].name'; } > prev/assets.txt
           python3 - <<'PY'
           import json
           m = json.load(open("prev/manifest.json", encoding="utf-8"))
@@ -54,14 +69,15 @@ jobs:
           # GitHub cheklovidan oshmaslik uchun fayllarni birma-bir, oraliq bilan yuklaymiz
           for f in *.mp3; do
             [ -e "$f" ] || continue
-            for try in 1 2 3 4 5; do
-              gh release upload "$TAG" "$f" --clobber && break
-              echo "Qayta urinish ($try): $f"; sleep $((try * 30))
+            rel=$(python3 -c "import sys; sys.path.insert(0,'../tools'); from audio_texts import release_for; print(release_for('$f'))")
+            for try in 1 2 3; do
+              gh release upload "$rel" "$f" --clobber && break
+              echo "Qayta urinish ($try): $f"; sleep $((try * 20))
             done
             sleep 1
           done
           # Manifestga faqat haqiqatan yuklangan fayllarni yozamiz
-          gh release view "$TAG" --json assets --jq '.assets[].name' > assets.txt
+          { gh release view "$TAG" --json assets --jq '.assets[].name'; gh release view audio-v2 --json assets --jq '.assets[].name'; } > assets.txt
           python3 - <<'PY'
           import json
           m = json.load(open("manifest.json", encoding="utf-8"))
