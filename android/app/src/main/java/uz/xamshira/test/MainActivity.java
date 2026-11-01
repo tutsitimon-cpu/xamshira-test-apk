@@ -10,6 +10,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(StepCounterPlugin.class); // ilova ichidagi qadam hisoblagich
         super.onCreate(savedInstanceState);
         // Skrinshot va ekran yozib olishni bloklaydi, shuningdek so'nggi
         // ilovalar ro'yxatida (recent apps) mazmunni yashiradi — test
