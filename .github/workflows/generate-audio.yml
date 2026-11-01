@@ -30,6 +30,16 @@ jobs:
         run: |
           mkdir -p prev
           gh release download "$TAG" -p manifest.json -D prev || echo "{}" > prev/manifest.json
+          # Manifestda bor, lekin release'ga yuklanmay qolgan fayllarni qayta yaratish uchun ro'yxatdan chiqaramiz
+          gh release view "$TAG" --json assets --jq '.assets[].name' > prev/assets.txt
+          python3 - <<'PY'
+          import json
+          m = json.load(open("prev/manifest.json", encoding="utf-8"))
+          have = set(open("prev/assets.txt").read().split())
+          m = {k: v for k, v in m.items() if k in have}
+          json.dump(m, open("prev/manifest.json", "w", encoding="utf-8"))
+          print("Release'da mavjud va manifestda:", len(m))
+          PY
 
       - name: Ovozga aylantirish (Azure)
         env:
@@ -41,5 +51,23 @@ jobs:
         if: always()
         run: |
           cd out
-          ls *.mp3 >/dev/null 2>&1 && gh release upload "$TAG" *.mp3 --clobber || echo "Yangi mp3 yo'q"
+          # GitHub cheklovidan oshmaslik uchun fayllarni birma-bir, oraliq bilan yuklaymiz
+          for f in *.mp3; do
+            [ -e "$f" ] || continue
+            for try in 1 2 3 4 5; do
+              gh release upload "$TAG" "$f" --clobber && break
+              echo "Qayta urinish ($try): $f"; sleep $((try * 30))
+            done
+            sleep 1
+          done
+          # Manifestga faqat haqiqatan yuklangan fayllarni yozamiz
+          gh release view "$TAG" --json assets --jq '.assets[].name' > assets.txt
+          python3 - <<'PY'
+          import json
+          m = json.load(open("manifest.json", encoding="utf-8"))
+          have = set(open("assets.txt").read().split())
+          m = {k: v for k, v in m.items() if k in have}
+          json.dump(m, open("manifest.json", "w", encoding="utf-8"))
+          print("Manifestda:", len(m))
+          PY
           gh release upload "$TAG" manifest.json --clobber
