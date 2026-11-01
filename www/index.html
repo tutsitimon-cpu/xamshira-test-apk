@@ -1659,7 +1659,7 @@ function renderHome(root){
   content.appendChild(quickLabel);
   const quickGrid = el('div',{class:'menu-grid'});
   quickGrid.appendChild(buildMenuCard({ grad:'--grad-4', icon:ICON_SPARKLE, title:t().ai_menu, sub:t().ai_sub, onclick:()=>{state.screen='ai-chat'; render();} }));
-  quickGrid.appendChild(buildMenuCard({ grad:'--grad-1', icon:ICON_CALC, title:TU('hub_title'), sub:TU('tab_weight')+' · '+TU('tab_steps')+' · '+TU('tab_scales'), onclick:()=>{tools.tab=null; state.screen='calculators'; render();} }));
+  quickGrid.appendChild(buildMenuCard({ grad:'--grad-1', icon:ICON_CALC, title:TU('hub_title'), sub:TU('tab_firstaid')+' · '+TU('tab_weight')+' · '+TU('tab_vacc'), onclick:()=>{tools.tab=null; state.screen='calculators'; render();} }));
   quickGrid.appendChild(buildMenuCard({ grad:'--grad-3', icon:ICON_SEARCH, title:t().icd_menu, sub:'XKT-10', onclick:()=>{state.screen='icd'; render();} }));
   quickGrid.appendChild(buildMenuCard({ grad:'--grad-2', icon:ICON_SOS, title:t().emergency_menu, sub:t().emergency_sub, onclick:()=>{state.screen='emergency'; render();} }));
   content.appendChild(quickGrid);
@@ -3282,8 +3282,8 @@ const tools = { tab:null, scale:{}, pain:null, dictQ:'', preg:{ lmp:'', cycle:'2
 
 const TOOL_LIST = [
   ['firstaid','tab_firstaid','d_firstaid','🚑'],
-  ['weight','tab_weight','d_weight','⚖️'], ['steps','tab_steps','d_steps','👣'], ['water','tab_water','d_water','💧'],
-  ['bp','tab_bp','d_bp','🩺'], ['sugar','tab_sugar','d_sugar','🩸'], ['meds','tab_meds','d_meds','💊'], ['breath','tab_breath','d_breath','🌬️'],
+  ['weight','tab_weight','d_weight','⚖️'], ['water','tab_water','d_water','💧'], ['breath','tab_breath','d_breath','🌬️'],
+  // Qadam hisoblagich, bosim/qand kundaliklari va dori eslatmasi tashkilot akkauntiga o'tilgunga qadar o'chirilgan (Google Play talabi)
   ['calc','tab_calc','d_calc','🧮'], ['scales','tab_scales','d_scales','📋'], ['norms','tab_norms','d_norms','❤️'],
   ['preg','tab_preg','d_preg','🤰'], ['vacc','tab_vacc','d_vacc','💉'], ['growth','tab_growth','d_growth','👶'], ['dict','tab_dict','d_dict','📖'], ['remind','tab_remind','d_remind','⏰'],
 ];
