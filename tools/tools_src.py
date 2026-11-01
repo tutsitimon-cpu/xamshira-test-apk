@@ -1,0 +1,319 @@
+# -*- coding: utf-8 -*-
+"""Amaliy vositalar (shkalalar, me'yorlar, homiladorlik, lug'at) uchun matnlar manbasi.
+Har bir matn: (uz_lat, ru, en). uz_cyr build vaqtida avtomatik hosil qilinadi.
+build_tools.py ushbu faylni o'qib, www/index.html ichidagi <script id="tools-data"> ni yangilaydi.
+"""
+
+UI = {
+    "hub_title": ("Amaliy vositalar", "Практические инструменты", "Practical tools"),
+    "tab_calc": ("Kalkulyatorlar", "Калькуляторы", "Calculators"),
+    "tab_scales": ("Shkalalar", "Шкалы", "Scales"),
+    "tab_norms": ("Me'yorlar", "Нормы", "Norms"),
+    "tab_preg": ("Homiladorlik", "Беременность", "Pregnancy"),
+    "tab_dict": ("Lug'at", "Словарь", "Glossary"),
+    "tab_remind": ("Toifa muddati", "Срок категории", "Category term"),
+    "disclaimer": (
+        "Vositalar o'quv va yordamchi maqsadda. Ular tashxis qo'ymaydi va davolashni buyurmaydi: shifokor tayinlovi va muassasangizdagi amaldagi protokol ustun turadi. Bemor ma'lumotlari kiritilmaydi va hech qayerga yuborilmaydi.",
+        "Инструменты носят учебный и вспомогательный характер. Они не ставят диагноз и не назначают лечение: приоритет за назначением врача и действующим протоколом вашего учреждения. Данные пациента не вводятся и никуда не передаются.",
+        "These tools are for learning and support only. They do not diagnose or prescribe: the doctor's order and your facility's current protocol take priority. No patient data is entered or sent anywhere.",
+    ),
+    "total": ("Jami ball", "Сумма баллов", "Total score"),
+    "choose_all": ("Barcha bandlarni tanlang", "Выберите все пункты", "Select all items"),
+    "reset": ("Tozalash", "Сбросить", "Reset"),
+    "height_cm": ("Bo'y (sm)", "Рост (см)", "Height (cm)"),
+    "weight_kg": ("Vazn (kg)", "Вес (кг)", "Weight (kg)"),
+    "bmi_adult": ("Faqat 18 yoshdan katta, homilador bo'lmagan kishilar uchun.", "Только для взрослых старше 18 лет, кроме беременных.", "Adults over 18 only, not for pregnancy."),
+    "check_input": ("Kiritilgan qiymatlarni tekshiring", "Проверьте введённые значения", "Check the entered values"),
+    "age": ("Yosh", "Возраст", "Age"),
+    "hr": ("Puls (daq.)", "Пульс (в мин)", "Heart rate (/min)"),
+    "rr": ("Nafas soni (daq.)", "ЧДД (в мин)", "Resp. rate (/min)"),
+    "sbp": ("Sistolik bosim (mm sim. ust.)", "Систолическое АД (мм рт. ст.)", "Systolic BP (mmHg)"),
+    "norms_note": (
+        "Oraliqlar tinch holatdagi taxminiy ko'rsatkichlar; turli manbalarda biroz farq qiladi. Bemor holatini faqat raqamga qarab emas, umumiy ahvoliga qarab baholang va o'zgarishlarni shifokorga yetkazing.",
+        "Диапазоны — ориентировочные значения в покое; в разных источниках немного различаются. Оценивайте пациента по общему состоянию, а не только по цифрам, и сообщайте врачу об изменениях.",
+        "Ranges are approximate resting values and differ slightly between sources. Assess the patient's overall condition, not just the numbers, and report changes to the doctor.",
+    ),
+    "adult_bp": ("Kattalarda arterial bosim", "Артериальное давление у взрослых", "Adult blood pressure"),
+    "temp": ("Tana harorati", "Температура тела", "Body temperature"),
+    "spo2": ("Qonning kislorod bilan to'yinishi (SpO₂)", "Сатурация (SpO₂)", "Oxygen saturation (SpO₂)"),
+    "lmp": ("Oxirgi hayzning birinchi kuni", "Первый день последней менструации", "First day of last period"),
+    "cycle": ("Hayz sikli davomiyligi (kun)", "Длительность цикла (дней)", "Cycle length (days)"),
+    "edd": ("Taxminiy tug'ruq sanasi", "Предполагаемая дата родов", "Estimated due date"),
+    "ga": ("Homiladorlik muddati (bugun)", "Срок беременности (сегодня)", "Gestational age (today)"),
+    "weeks": ("hafta", "нед.", "wk"),
+    "days": ("kun", "дн.", "d"),
+    "trimester": ("Trimestr", "Триместр", "Trimester"),
+    "preg_note": (
+        "Hisob Negele qoidasiga asoslangan (oxirgi hayzdan 280 kun; sikl 28 kundan farq qilsa, tuzatiladi). Aniq muddatni UTT va shifokor belgilaydi.",
+        "Расчёт по правилу Негеле (280 дней от последней менструации, с поправкой на длину цикла). Точный срок определяют УЗИ и врач.",
+        "Based on Naegele's rule (280 days from the last period, adjusted for cycle length). The exact date is set by ultrasound and the doctor.",
+    ),
+    "preg_future": ("Sana bugundan keyin bo'lishi mumkin emas", "Дата не может быть позже сегодняшней", "The date cannot be in the future"),
+    "preg_over": ("Muddat 42 haftadan oshgan — sanani tekshiring", "Срок больше 42 недель — проверьте дату", "Over 42 weeks — check the date"),
+    "dict_search": ("Atama qidirish (o'zbekcha, ruscha yoki lotincha)", "Поиск термина (узб., рус. или лат.)", "Search a term (Uzbek, Russian or Latin)"),
+    "dict_count": ("ta atama", "терминов", "terms"),
+    "remind_title": ("Toifa muddati eslatmasi", "Напоминание о сроке категории", "Category expiry reminder"),
+    "remind_desc": (
+        "Malaka toifangiz amal qilish muddati tugaydigan sanani kiriting. Ilova muddat tugashidan 6 oy, 3 oy va 1 oy oldin eslatadi. Sana faqat telefoningizda saqlanadi.",
+        "Укажите дату окончания срока вашей квалификационной категории. Приложение напомнит за 6, 3 и 1 месяц. Дата хранится только на вашем телефоне.",
+        "Enter the date your qualification category expires. The app will remind you 6, 3 and 1 month before. The date stays on your phone only.",
+    ),
+    "remind_date": ("Toifa tugash sanasi", "Дата окончания категории", "Category expiry date"),
+    "remind_save": ("Eslatmani saqlash", "Сохранить напоминание", "Save reminder"),
+    "remind_clear": ("Eslatmani o'chirish", "Удалить напоминание", "Delete reminder"),
+    "remind_left": ("Muddat tugashiga qoldi", "До окончания осталось", "Time left"),
+    "remind_saved": ("Eslatma saqlandi", "Напоминание сохранено", "Reminder saved"),
+    "remind_past": ("Toifa muddati tugagan. Attestatsiyaga tayyorlanishni boshlang.", "Срок категории истёк. Начните подготовку к аттестации.", "The category has expired. Start preparing for certification."),
+    "remind_notif_title": ("Toifa muddati yaqinlashmoqda", "Срок категории подходит к концу", "Category term ending soon"),
+    "remind_notif_body": ("Malaka toifangiz muddati tugashiga {n} qoldi. Tayyorgarlikni boshlang!", "До окончания срока вашей категории осталось {n}. Начните подготовку!", "Your category expires in {n}. Start preparing!"),
+    "months_6": ("6 oy", "6 месяцев", "6 months"),
+    "months_3": ("3 oy", "3 месяца", "3 months"),
+    "months_1": ("1 oy", "1 месяц", "1 month"),
+    "remind_no_notif": ("Bildirishnomalar faqat telefondagi ilovada ishlaydi.", "Уведомления работают только в приложении на телефоне.", "Notifications work only in the phone app."),
+    "dose_ack": ("Natijani shifokor tayinlovi va dori yo'riqnomasi bilan solishtiraman", "Я сверю результат с назначением врача и инструкцией препарата", "I will check the result against the doctor's order and the drug leaflet"),
+    "dose_warn_weight": ("Vazn odatiy chegaradan tashqarida (0,5–250 kg). Qiymatni tekshiring.", "Вес вне обычного диапазона (0,5–250 кг). Проверьте значение.", "Weight is outside the usual range (0.5–250 kg). Check the value."),
+    "dose_warn_mgkg": ("Doza (mg/kg) juda katta ko'rinadi. Birliklarni (mg, mkg, g) tekshiring.", "Доза (мг/кг) выглядит слишком большой. Проверьте единицы (мг, мкг, г).", "The dose (mg/kg) looks very large. Check the units (mg, mcg, g)."),
+    "dose_warn_total": ("Natija juda katta. Hisobni va birliklarni qayta tekshiring, shifokor bilan maslahatlashing.", "Результат очень большой. Перепроверьте расчёт и единицы, уточните у врача.", "The result is very large. Recheck the calculation and units and confirm with the doctor."),
+    "drip_warn": ("Natija odatiy chegaradan tashqarida. Hajm, vaqt va tomchi koeffitsientini tekshiring.", "Результат вне обычного диапазона. Проверьте объём, время и каплевой фактор.", "Result is outside the usual range. Check volume, time and drop factor."),
+}
+
+INTERP_LEVEL = {"ok": "#2e9e6b", "mild": "#c9a227", "mod": "#e07b2a", "high": "#d64545"}
+
+SCALES = [
+    {
+        "key": "gcs",
+        "title": ("Glazgo koma shkalasi (GCS)", "Шкала комы Глазго (ШКГ)", "Glasgow Coma Scale (GCS)"),
+        "desc": ("Hush darajasini baholash: ko'z ochish, nutq va harakat javobi.", "Оценка уровня сознания: открывание глаз, речевая и двигательная реакция.", "Assesses consciousness: eye, verbal and motor response."),
+        "items": [
+            {"t": ("Ko'z ochish", "Открывание глаз", "Eye opening"), "o": [
+                (4, ("O'z-o'zidan", "Спонтанное", "Spontaneous")),
+                (3, ("Murojaat qilinganda (ovozga)", "На обращение (звук)", "To sound")),
+                (2, ("Og'riq ta'sirida", "На боль", "To pressure/pain")),
+                (1, ("Ochmaydi", "Отсутствует", "None"))]},
+            {"t": ("Nutq javobi", "Речевая реакция", "Verbal response"), "o": [
+                (5, ("To'g'ri, mo'ljalni yo'qotmagan", "Ориентирован, отвечает правильно", "Oriented")),
+                (4, ("Chalkash nutq", "Спутанная речь", "Confused")),
+                (3, ("Alohida, nomuvofiq so'zlar", "Отдельные неуместные слова", "Inappropriate words")),
+                (2, ("Tushunarsiz tovushlar", "Нечленораздельные звуки", "Incomprehensible sounds")),
+                (1, ("Javob yo'q", "Отсутствует", "None"))]},
+            {"t": ("Harakat javobi", "Двигательная реакция", "Motor response"), "o": [
+                (6, ("Topshiriqni bajaradi", "Выполняет команды", "Obeys commands")),
+                (5, ("Og'riq joyini aniqlaydi", "Локализует боль", "Localises pain")),
+                (4, ("Og'riqdan qo'lini tortadi", "Отдёргивает конечность на боль", "Withdraws from pain")),
+                (3, ("Patologik bukilish", "Патологическое сгибание", "Abnormal flexion")),
+                (2, ("Patologik yozilish", "Патологическое разгибание", "Extension")),
+                (1, ("Javob yo'q", "Отсутствует", "None"))]},
+        ],
+        "interp": [
+            (15, 15, "ok", ("15 — aniq hush", "15 — ясное сознание", "15 — fully conscious")),
+            (13, 14, "mild", ("13–14 — yengil buzilish (karaxtlik)", "13–14 — лёгкое нарушение (оглушение)", "13–14 — mild impairment")),
+            (9, 12, "mod", ("9–12 — o'rtacha buzilish (sopor)", "9–12 — умеренное нарушение (сопор)", "9–12 — moderate impairment")),
+            (3, 8, "high", ("3–8 — og'ir buzilish (koma): nafas yo'llarini himoya qilish zarur, zudlik bilan shifokorni chaqiring", "3–8 — тяжёлое нарушение (кома): требуется защита дыхательных путей, срочно вызовите врача", "3–8 — severe (coma): protect the airway, call the doctor at once")),
+        ],
+    },
+    {
+        "key": "braden",
+        "title": ("Yotoq yara xavfi (Braden shkalasi)", "Риск пролежней (шкала Брейден)", "Pressure ulcer risk (Braden)"),
+        "desc": ("Ball qancha past bo'lsa, yotoq yara xavfi shuncha yuqori.", "Чем ниже балл, тем выше риск пролежней.", "The lower the score, the higher the risk."),
+        "items": [
+            {"t": ("Sezgirlik", "Чувствительность", "Sensory perception"), "o": [
+                (1, ("Butunlay cheklangan", "Полностью ограничена", "Completely limited")),
+                (2, ("Juda cheklangan", "Сильно ограничена", "Very limited")),
+                (3, ("Biroz cheklangan", "Слегка ограничена", "Slightly limited")),
+                (4, ("Buzilmagan", "Не нарушена", "No impairment"))]},
+            {"t": ("Teri namligi", "Влажность кожи", "Moisture"), "o": [
+                (1, ("Doimo nam", "Постоянно влажная", "Constantly moist")),
+                (2, ("Ko'pincha nam", "Часто влажная", "Often moist")),
+                (3, ("Ba'zan nam", "Иногда влажная", "Occasionally moist")),
+                (4, ("Kamdan-kam nam", "Редко влажная", "Rarely moist"))]},
+            {"t": ("Faollik", "Активность", "Activity"), "o": [
+                (1, ("Yotoq rejimida", "Лежачий", "Bedfast")),
+                (2, ("Kreslo bilan cheklangan", "Сидячий", "Chairfast")),
+                (3, ("Ba'zan yuradi", "Иногда ходит", "Walks occasionally")),
+                (4, ("Tez-tez yuradi", "Часто ходит", "Walks frequently"))]},
+            {"t": ("Harakatchanlik", "Подвижность", "Mobility"), "o": [
+                (1, ("Butunlay harakatsiz", "Полностью обездвижен", "Completely immobile")),
+                (2, ("Juda cheklangan", "Сильно ограничена", "Very limited")),
+                (3, ("Biroz cheklangan", "Слегка ограничена", "Slightly limited")),
+                (4, ("Cheklanmagan", "Не ограничена", "No limitation"))]},
+            {"t": ("Ovqatlanish", "Питание", "Nutrition"), "o": [
+                (1, ("Juda yomon", "Очень плохое", "Very poor")),
+                (2, ("Yetarli emas", "Недостаточное", "Probably inadequate")),
+                (3, ("Yetarli", "Адекватное", "Adequate")),
+                (4, ("A'lo", "Отличное", "Excellent"))]},
+            {"t": ("Ishqalanish va siljish", "Трение и сдвиг", "Friction and shear"), "o": [
+                (1, ("Muammo bor", "Есть проблема", "Problem")),
+                (2, ("Ehtimoliy muammo", "Потенциальная проблема", "Potential problem")),
+                (3, ("Muammo yo'q", "Нет проблемы", "No apparent problem"))]},
+        ],
+        "interp": [
+            (19, 23, "ok", ("19–23 — xavf yo'q", "19–23 — риска нет", "19–23 — no risk")),
+            (15, 18, "mild", ("15–18 — xavf bor: holatni muntazam o'zgartirish, teri parvarishi", "15–18 — есть риск: регулярная смена положения, уход за кожей", "15–18 — at risk: regular repositioning, skin care")),
+            (13, 14, "mod", ("13–14 — o'rtacha xavf: profilaktika rejasini kuchaytiring", "13–14 — умеренный риск: усильте профилактику", "13–14 — moderate risk: step up prevention")),
+            (10, 12, "high", ("10–12 — yuqori xavf: maxsus matras, har 2 soatda holatni o'zgartirish", "10–12 — высокий риск: противопролежневый матрас, смена положения каждые 2 часа", "10–12 — high risk: special mattress, reposition every 2 hours")),
+            (6, 9, "high", ("6–9 — juda yuqori xavf: kompleks profilaktika, shifokorga xabar bering", "6–9 — очень высокий риск: комплексная профилактика, сообщите врачу", "6–9 — very high risk: full prevention bundle, inform the doctor")),
+        ],
+    },
+    {
+        "key": "morse",
+        "title": ("Yiqilish xavfi (Morse shkalasi)", "Риск падения (шкала Морзе)", "Fall risk (Morse Fall Scale)"),
+        "desc": ("Statsionardagi bemorning yiqilish xavfini baholash.", "Оценка риска падения пациента в стационаре.", "Assesses an inpatient's risk of falling."),
+        "items": [
+            {"t": ("Oxirgi 3 oyda yiqilganmi?", "Падения за последние 3 месяца", "Fall in the last 3 months"), "o": [
+                (0, ("Yo'q", "Нет", "No")), (25, ("Ha", "Да", "Yes"))]},
+            {"t": ("Bir nechta tashxis bor", "Сопутствующие диагнозы", "Secondary diagnosis"), "o": [
+                (0, ("Yo'q", "Нет", "No")), (15, ("Ha", "Да", "Yes"))]},
+            {"t": ("Yurishda yordam", "Помощь при ходьбе", "Ambulatory aid"), "o": [
+                (0, ("Kerak emas / yotoq rejimi / hamshira yordam beradi", "Не нужна / постельный режим / помогает медсестра", "None / bed rest / nurse assists")),
+                (15, ("Qo'ltiqtayoq, tayoq yoki yurgizgich", "Костыли, трость или ходунки", "Crutches, cane or walker")),
+                (30, ("Mebelga tayanib yuradi", "Держится за мебель", "Holds on to furniture"))]},
+            {"t": ("Vena ichi infuziyasi / kateter", "Внутривенная инфузия / катетер", "IV therapy / lock"), "o": [
+                (0, ("Yo'q", "Нет", "No")), (20, ("Ha", "Да", "Yes"))]},
+            {"t": ("Yurishi", "Походка", "Gait"), "o": [
+                (0, ("Normal / yotoq rejimi / aravacha", "Нормальная / постельный режим / кресло", "Normal / bed rest / wheelchair")),
+                (10, ("Holsiz", "Слабая", "Weak")),
+                (20, ("Buzilgan", "Нарушенная", "Impaired"))]},
+            {"t": ("Ruhiy holat", "Психическое состояние", "Mental status"), "o": [
+                (0, ("O'z imkoniyatlarini to'g'ri baholaydi", "Адекватно оценивает свои возможности", "Knows own limits")),
+                (15, ("Imkoniyatini oshirib baholaydi yoki unutadi", "Переоценивает возможности или забывает", "Overestimates or forgets limits"))]},
+        ],
+        "interp": [
+            (0, 24, "ok", ("0–24 — past xavf: umumiy xavfsizlik choralari", "0–24 — низкий риск: стандартные меры безопасности", "0–24 — low risk: standard safety measures")),
+            (25, 44, "mod", ("25–44 — o'rtacha xavf: yiqilishning oldini olish choralarini kuchaytiring", "25–44 — средний риск: усильте профилактику падений", "25–44 — moderate risk: step up fall prevention")),
+            (45, 125, "high", ("45 va undan yuqori — yuqori xavf: doimiy kuzatuv, karavot to'siqlari, yordamchi bilan yurish", "45 и выше — высокий риск: постоянное наблюдение, бортики кровати, ходьба с помощником", "45+ — high risk: close observation, bed rails, walk only with help")),
+        ],
+    },
+    {
+        "key": "apgar",
+        "title": ("Apgar shkalasi", "Шкала Апгар", "Apgar score"),
+        "desc": ("Chaqaloq holatini tug'ilgandan keyin 1- va 5-daqiqada baholash.", "Оценка новорождённого на 1-й и 5-й минуте после рождения.", "Newborn assessment at 1 and 5 minutes after birth."),
+        "items": [
+            {"t": ("Yurak urishi", "Сердцебиение", "Heart rate"), "o": [
+                (0, ("Yo'q", "Отсутствует", "Absent")), (1, ("Daqiqasiga 100 dan kam", "Менее 100 в мин", "Below 100/min")), (2, ("Daqiqasiga 100 va ko'p", "100 и более в мин", "100/min or more"))]},
+            {"t": ("Nafas olishi", "Дыхание", "Breathing"), "o": [
+                (0, ("Yo'q", "Отсутствует", "Absent")), (1, ("Sust, notekis, kuchsiz yig'i", "Слабое, нерегулярное, слабый крик", "Weak, irregular, weak cry")), (2, ("Yaxshi, baland yig'i", "Хорошее, громкий крик", "Good, strong cry"))]},
+            {"t": ("Mushak tonusi", "Мышечный тонус", "Muscle tone"), "o": [
+                (0, ("Bo'shashgan", "Вялый", "Limp")), (1, ("Qo'l-oyoqlar biroz bukilgan", "Некоторое сгибание конечностей", "Some flexion")), (2, ("Faol harakatlar", "Активные движения", "Active movement"))]},
+            {"t": ("Reflektor qo'zg'aluvchanlik", "Рефлекторная возбудимость", "Reflex irritability"), "o": [
+                (0, ("Javob yo'q", "Нет реакции", "No response")), (1, ("Yuzini burishtiradi", "Гримаса", "Grimace")), (2, ("Yig'laydi, faol javob", "Крик, активная реакция", "Cry, active withdrawal"))]},
+            {"t": ("Teri rangi", "Цвет кожи", "Skin colour"), "o": [
+                (0, ("Butun tana ko'kimtir yoki oqargan", "Общий цианоз или бледность", "Blue or pale all over")), (1, ("Tana pushti, qo'l-oyoq ko'kimtir", "Тело розовое, конечности синюшные", "Pink body, blue extremities")), (2, ("Butunlay pushti", "Полностью розовая", "Completely pink"))]},
+        ],
+        "interp": [
+            (7, 10, "ok", ("7–10 — qoniqarli holat", "7–10 — удовлетворительное состояние", "7–10 — reassuring")),
+            (4, 6, "mod", ("4–6 — o'rtacha og'ir: yordam choralari va doimiy kuzatuv kerak", "4–6 — умеренное нарушение: нужны меры помощи и наблюдение", "4–6 — moderately abnormal: needs support and monitoring")),
+            (0, 3, "high", ("0–3 — og'ir holat: zudlik bilan jonlantirish choralari", "0–3 — тяжёлое состояние: срочные реанимационные меры", "0–3 — severe: immediate resuscitation")),
+        ],
+    },
+]
+
+PAIN = {
+    "title": ("Og'riq shkalasi (0–10)", "Шкала боли (0–10)", "Pain scale (0–10)"),
+    "desc": ("Bemordan og'riqni 0 dan (og'riq yo'q) 10 gacha (eng kuchli og'riq) baholashini so'rang.", "Попросите пациента оценить боль от 0 (нет боли) до 10 (самая сильная боль).", "Ask the patient to rate pain from 0 (none) to 10 (worst imaginable)."),
+    "interp": [
+        (0, 0, "ok", ("0 — og'riq yo'q", "0 — боли нет", "0 — no pain")),
+        (1, 3, "mild", ("1–3 — yengil og'riq", "1–3 — слабая боль", "1–3 — mild pain")),
+        (4, 6, "mod", ("4–6 — o'rtacha og'riq: shifokorga xabar bering", "4–6 — умеренная боль: сообщите врачу", "4–6 — moderate pain: inform the doctor")),
+        (7, 10, "high", ("7–10 — kuchli og'riq: zudlik bilan shifokorga xabar bering", "7–10 — сильная боль: срочно сообщите врачу", "7–10 — severe pain: inform the doctor at once")),
+    ],
+}
+
+BMI = {
+    "title": ("Tana vazni indeksi (TVI)", "Индекс массы тела (ИМТ)", "Body mass index (BMI)"),
+    "interp": [
+        (0, 18.49, "mod", ("18,5 dan kam — vazn yetishmasligi", "Менее 18,5 — дефицит массы", "Below 18.5 — underweight")),
+        (18.5, 24.99, "ok", ("18,5–24,9 — me'yoriy vazn", "18,5–24,9 — нормальная масса", "18.5–24.9 — normal weight")),
+        (25, 29.99, "mild", ("25–29,9 — ortiqcha vazn", "25–29,9 — избыточная масса", "25–29.9 — overweight")),
+        (30, 34.99, "mod", ("30–34,9 — semizlik I daraja", "30–34,9 — ожирение I степени", "30–34.9 — obesity class I")),
+        (35, 39.99, "high", ("35–39,9 — semizlik II daraja", "35–39,9 — ожирение II степени", "35–39.9 — obesity class II")),
+        (40, 999, "high", ("40 va undan ko'p — semizlik III daraja", "40 и более — ожирение III степени", "40+ — obesity class III")),
+    ],
+}
+
+# Yoshga qarab tinch holatdagi taxminiy ko'rsatkichlar
+VITALS = [
+    (("Chaqaloq (0–28 kun)", "Новорождённый (0–28 дн.)", "Newborn (0–28 days)"), "100–160", "30–60", "60–90"),
+    (("1–12 oy", "1–12 мес.", "1–12 months"), "100–160", "30–50", "70–100"),
+    (("1–3 yosh", "1–3 года", "1–3 years"), "90–150", "24–40", "80–110"),
+    (("3–6 yosh", "3–6 лет", "3–6 years"), "80–140", "22–34", "85–110"),
+    (("6–12 yosh", "6–12 лет", "6–12 years"), "70–120", "18–30", "90–120"),
+    (("12–18 yosh", "12–18 лет", "12–18 years"), "60–100", "12–20", "100–130"),
+    (("Kattalar", "Взрослые", "Adults"), "60–90", "16–20", "100–139"),
+]
+
+ADULT_BP = [
+    ("ok", ("120/80 dan past — optimal", "Ниже 120/80 — оптимальное", "Below 120/80 — optimal")),
+    ("ok", ("120–129 / 80–84 — normal", "120–129 / 80–84 — нормальное", "120–129 / 80–84 — normal")),
+    ("mild", ("130–139 / 85–89 — yuqori normal", "130–139 / 85–89 — высокое нормальное", "130–139 / 85–89 — high normal")),
+    ("high", ("140/90 va yuqori — arterial gipertenziya", "140/90 и выше — артериальная гипертензия", "140/90 or more — hypertension")),
+    ("high", ("90/60 dan past — gipotenziya: holatini baholang", "Ниже 90/60 — гипотензия: оцените состояние", "Below 90/60 — hypotension: assess the patient")),
+]
+
+TEMP = [
+    ("ok", ("Qo'ltiq ostida 36,0–36,9 °C — me'yor", "Подмышечная 36,0–36,9 °C — норма", "Axillary 36.0–36.9 °C — normal")),
+    ("ok", ("Og'izda o'lchanganda qo'ltiqdagidan 0,3–0,5 °C, to'g'ri ichakda 0,5–1,0 °C yuqori bo'ladi", "Во рту на 0,3–0,5 °C, в прямой кишке на 0,5–1,0 °C выше подмышечной", "Oral is 0.3–0.5 °C and rectal 0.5–1.0 °C higher than axillary")),
+    ("mild", ("37,1–38,0 °C — subfebril harorat", "37,1–38,0 °C — субфебрильная", "37.1–38.0 °C — low-grade fever")),
+    ("mod", ("38,1–39,0 °C — febril (o'rtacha) isitma", "38,1–39,0 °C — фебрильная", "38.1–39.0 °C — fever")),
+    ("high", ("39,1 °C va yuqori — yuqori isitma; 35,0 °C dan past — gipotermiya", "39,1 °C и выше — высокая лихорадка; ниже 35,0 °C — гипотермия", "39.1 °C+ — high fever; below 35.0 °C — hypothermia")),
+]
+
+SPO2 = [
+    ("ok", ("95–100% — me'yor", "95–100% — норма", "95–100% — normal")),
+    ("mild", ("92–94% — kuzating, shifokorga xabar bering (O'SOK bilan og'riganlarda maqsad boshqacha bo'lishi mumkin)", "92–94% — наблюдайте, сообщите врачу (при ХОБЛ целевые значения могут отличаться)", "92–94% — monitor and inform the doctor (targets may differ in COPD)")),
+    ("high", ("92% dan past — gipoksemiya: zudlik bilan shifokorga xabar bering", "Ниже 92% — гипоксемия: срочно сообщите врачу", "Below 92% — hypoxaemia: inform the doctor at once")),
+]
+
+# Lug'at: (o'zbekcha, ruscha, lotincha/xalqaro)
+DICT = [
+    ("Yurak", "Сердце", "Cor"), ("O'pka", "Лёгкое", "Pulmo"), ("Jigar", "Печень", "Hepar"), ("Buyrak", "Почка", "Ren"),
+    ("Me'da", "Желудок", "Ventriculus (Gaster)"), ("Ichak", "Кишка", "Intestinum"), ("Qon", "Кровь", "Sanguis"),
+    ("Qon tomir", "Сосуд", "Vas"), ("Arteriya", "Артерия", "Arteria"), ("Vena", "Вена", "Vena"),
+    ("Suyak", "Кость", "Os"), ("Mushak", "Мышца", "Musculus"), ("Teri", "Кожа", "Cutis (Derma)"),
+    ("Bosh", "Голова", "Caput"), ("Bo'yin", "Шея", "Collum"), ("Ko'krak qafasi", "Грудная клетка", "Thorax"),
+    ("Qorin", "Живот", "Abdomen"), ("Qo'l", "Рука", "Manus / membrum superius"), ("Oyoq", "Нога", "Pes / membrum inferius"),
+    ("Ko'z", "Глаз", "Oculus"), ("Quloq", "Ухо", "Auris"), ("Burun", "Нос", "Nasus"), ("Og'iz", "Рот", "Os, oris"),
+    ("Til", "Язык", "Lingua"), ("Tish", "Зуб", "Dens"), ("Miya", "Мозг", "Cerebrum / encephalon"),
+    ("Orqa miya", "Спинной мозг", "Medulla spinalis"), ("Nerv", "Нерв", "Nervus"), ("Bo'g'im", "Сустав", "Articulatio"),
+    ("Siydik pufagi", "Мочевой пузырь", "Vesica urinaria"), ("Bachadon", "Матка", "Uterus"), ("Tuxumdon", "Яичник", "Ovarium"),
+    ("Qalqonsimon bez", "Щитовидная железа", "Glandula thyroidea"), ("Me'da osti bezi", "Поджелудочная железа", "Pancreas"),
+    ("Taloq", "Селезёнка", "Lien (Splen)"), ("O't pufagi", "Желчный пузырь", "Vesica fellea"), ("Qizilo'ngach", "Пищевод", "Oesophagus"),
+    ("Hiqildoq", "Гортань", "Larynx"), ("Kekirdak (traxeya)", "Трахея", "Trachea"), ("Bronx", "Бронх", "Bronchus"),
+    ("Limfa tuguni", "Лимфатический узел", "Nodus lymphaticus"), ("Yo'ldosh", "Плацента", "Placenta"), ("Homila", "Плод", "Fetus"),
+    ("Isitma", "Лихорадка", "Febris"), ("Og'riq", "Боль", "Dolor"), ("Yallig'lanish", "Воспаление", "Inflammatio"),
+    ("Shish", "Отёк", "Oedema"), ("Qon ketish", "Кровотечение", "Haemorrhagia"), ("Qon quyilish", "Кровоизлияние", "Haemorrhagia (in tissue)"),
+    ("Yo'tal", "Кашель", "Tussis"), ("Hansirash", "Одышка", "Dyspnoe"), ("Ko'ngil aynishi", "Тошнота", "Nausea"),
+    ("Qusish", "Рвота", "Vomitus (emesis)"), ("Ich ketishi", "Понос", "Diarrhoea"), ("Ich qotishi", "Запор", "Obstipatio"),
+    ("Bosh aylanishi", "Головокружение", "Vertigo"), ("Hushdan ketish", "Обморок", "Syncope"), ("Talvasa", "Судороги", "Convulsiones"),
+    ("Toshma", "Сыпь", "Exanthema"), ("Qichishish", "Зуд", "Pruritus"), ("Sariqlik", "Желтуха", "Icterus"),
+    ("Ko'karish (sianoz)", "Цианоз", "Cyanosis"), ("Oqarish", "Бледность", "Pallor"), ("Kamqonlik", "Малокровие (анемия)", "Anaemia"),
+    ("Yuqori bosim", "Повышенное давление", "Hypertensio"), ("Past bosim", "Пониженное давление", "Hypotensio"),
+    ("Tez yurak urishi", "Учащённое сердцебиение", "Tachycardia"), ("Sekin yurak urishi", "Замедленное сердцебиение", "Bradycardia"),
+    ("Yurak ritmi buzilishi", "Нарушение ритма", "Arrhythmia"), ("Nafas to'xtashi", "Остановка дыхания", "Apnoe"),
+    ("Bo'g'ilish", "Удушье", "Asphyxia"), ("Shok", "Шок", "Shock"), ("Koma", "Кома", "Coma"),
+    ("Suvsizlanish", "Обезвоживание", "Dehydratio (exsiccosis)"), ("Zaharlanish", "Отравление", "Intoxicatio"),
+    ("Kuyish", "Ожог", "Combustio"), ("Sovuq urishi", "Обморожение", "Congelatio"), ("Suyak sinishi", "Перелом", "Fractura"),
+    ("Chiqish (bo'g'im)", "Вывих", "Luxatio"), ("Lat yeyish", "Ушиб", "Contusio"), ("Jarohat", "Рана", "Vulnus"),
+    ("Yiring", "Гной", "Pus"), ("Yiringlik", "Абсцесс", "Abscessus"), ("Yotoq yara", "Пролежень", "Decubitus"),
+    ("O'sma", "Опухоль", "Tumor"), ("Saraton", "Рак", "Cancer (carcinoma)"), ("Churra", "Грыжа", "Hernia"),
+    ("Tosh", "Камень", "Calculus"), ("Yara", "Язва", "Ulcus"), ("Infeksiya", "Инфекция", "Infectio"),
+    ("Yuqumli kasallik", "Инфекционная болезнь", "Morbus infectiosus"), ("Emlash", "Прививка", "Vaccinatio"),
+    ("Immunitet", "Иммунитет", "Immunitas"), ("Qo'zg'atuvchi", "Возбудитель", "Agens infectiosum"),
+    ("Tashxis", "Диагноз", "Diagnosis"), ("Anamnez", "Анамнез", "Anamnesis"), ("Belgi (simptom)", "Симптом", "Symptoma"),
+    ("Asorat", "Осложнение", "Complicatio"), ("Profilaktika", "Профилактика", "Prophylaxis"), ("Davolash", "Лечение", "Therapia"),
+    ("Dori", "Лекарство", "Medicamentum"), ("Retsept", "Рецепт", "Recipe (Rp.)"), ("Tabletka", "Таблетка", "Tabuletta"),
+    ("Eritma", "Раствор", "Solutio"), ("Malham", "Мазь", "Unguentum"), ("Shamcha", "Свеча", "Suppositorium"),
+    ("Damlama", "Настой", "Infusum"), ("Qaynatma", "Отвар", "Decoctum"), ("Tomchi", "Капли", "Guttae"),
+    ("In'eksiya", "Инъекция", "Injectio"), ("Teri ostiga", "Подкожно", "Subcutanee (s/c)"), ("Mushak ichiga", "Внутримышечно", "Intramuscular (i/m)"),
+    ("Vena ichiga", "Внутривенно", "Intravenosus (i/v)"), ("Teri ichiga", "Внутрикожно", "Intracutaneus (i/c)"),
+    ("Kuniga bir marta", "Один раз в день", "Semel in die"), ("Kuniga ikki marta", "Два раза в день", "Bis in die (b.i.d.)"),
+    ("Kuniga uch marta", "Три раза в день", "Ter in die (t.i.d.)"), ("Ovqatdan oldin", "До еды", "Ante cibum"),
+    ("Ovqatdan keyin", "После еды", "Post cibum"), ("Och qoringa", "Натощак", "Jejuno stomacho"),
+    ("Shoshilinch", "Срочно", "Cito!"), ("Steril", "Стерильно", "Sterilis"), ("Bog'lam", "Повязка", "Fascia (bandagium)"),
+    ("Kateter", "Катетер", "Catheter"), ("Zond", "Зонд", "Sonda"), ("Ho'qna", "Клизма", "Clysma"),
+    ("Isitgich (grelka)", "Грелка", "Thermophorum"), ("Muz xaltasi", "Пузырь со льдом", "Vesica cum glacie"),
+    ("Kompress", "Компресс", "Compressus"), ("Puls", "Пульс", "Pulsus"), ("Nafas", "Дыхание", "Respiratio"),
+    ("Arterial bosim", "Артериальное давление", "Tensio arterialis"), ("Harorat", "Температура", "Temperatura"),
+    ("Siydik", "Моча", "Urina"), ("Najas", "Кал", "Faeces"), ("Balg'am", "Мокрота", "Sputum"), ("So'lak", "Слюна", "Saliva"),
+    ("Homiladorlik", "Беременность", "Graviditas"), ("Tug'ruq", "Роды", "Partus"), ("Hayz", "Менструация", "Menstruatio"),
+    ("Chaqaloq", "Новорождённый", "Neonatus"), ("Emizish", "Грудное вскармливание", "Lactatio"),
+]
