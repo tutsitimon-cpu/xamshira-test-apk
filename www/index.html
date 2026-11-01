@@ -745,6 +745,234 @@ function saveStats(){
   storageSet(STATS_KEY, JSON.stringify({ totalTestAnswered: state.totalTestAnswered, totalTestCorrect: state.totalTestCorrect }));
 }
 
+// ===================== MENING NATIJALARIM: kunlik maqsad, xatolar ustida ishlash, imtihon tarixi =====================
+// Hammasi faqat qurilmada saqlanadi (serverga yuborilmaydi).
+const PRG_T = {"uz_lat": {"title": "Mening natijalarim", "sub": "Kunlik maqsad, xatolar va imtihonlar tarixi", "goal_title": "Bugungi maqsad", "goal_of": "{a} / {g} ta savol", "goal_done": "Barakalla! Bugungi maqsad bajarildi ✅", "goal_left": "Maqsadgacha yana {n} ta savol", "goal_pick": "Kunlik maqsadni tanlang", "total": "Jami javoblar", "acc": "Toʻgʻri javoblar", "streak": "Ketma-ket kunlar", "chart": "Soʻnggi 14 kun", "chart_legend": "Ochiq rang — javoblar, toʻq rang — toʻgʻri javoblar", "chart_empty": "Hali maʼlumot yoʻq. Bir nechta test ishlang — grafik shu yerda paydo boʻladi.", "bank": "Savollar bazasi oʻzlashtirildi", "bank_of": "{s} / {t} ta savol koʻrildi", "mist_title": "Xatolar ustida ishlash", "mist_sub": "{n} ta savol — 2 marta ketma-ket toʻgʻri topsangiz roʻyxatdan chiqadi", "mist_none": "Xato qilingan savollar yoʻq. Test ishlang — xato topilgan savollar shu yerga avtomatik tushadi.", "mist_start": "Xatolarni qayta ishlash", "mist_clear": "Roʻyxatni tozalash", "mist_clear_q": "Xatolar roʻyxati tozalansinmi?", "exams": "Imtihonlar tarixi", "exams_none": "Hali imtihon rejimida test topshirilmagan.", "exam_best": "Eng yaxshi natija: {p}%", "exam_trend_up": "Natija oldingisidan {d}% yaxshilandi 📈", "exam_trend_down": "Natija oldingisidan {d}% pasaydi — xatolar ustida ishlang", "weak_hint": "Maslahat: avval «Xatolar ustida ishlash»ni bajaring, soʻng imtihon rejimida oʻzingizni sinang.", "home_goal": "Bugun: {a}/{g} savol", "home_open": "Natijalarni koʻrish ›", "res_mist": "Xatolar ustida ishlash ({n})", "res_progress": "Mening natijalarim", "res_goal_done": "🎯 Bugungi maqsad bajarildi!", "res_goal_left": "🎯 Bugungi maqsadgacha {n} ta savol qoldi", "days": "Du,Se,Ch,Pa,Ju,Sh,Ya", "privacy": "Natijalar faqat telefoningizda saqlanadi."}, "uz_cyr": {"title": "Менинг натижаларим", "sub": "Кунлик мақсад, хатолар ва имтиҳонлар тарихи", "goal_title": "Бугунги мақсад", "goal_of": "{a} / {g} та савол", "goal_done": "Баракалла! Бугунги мақсад бажарилди ✅", "goal_left": "Мақсадгача яна {n} та савол", "goal_pick": "Кунлик мақсадни танланг", "total": "Жами жавоблар", "acc": "Тўғри жавоблар", "streak": "Кетма-кет кунлар", "chart": "Сўнгги 14 кун", "chart_legend": "Очиқ ранг — жавоблар, тўқ ранг — тўғри жавоблар", "chart_empty": "Ҳали маълумот йўқ. Бир нечта тест ишланг — график шу ерда пайдо бўлади.", "bank": "Саволлар базаси ўзлаштирилди", "bank_of": "{s} / {t} та савол кўрилди", "mist_title": "Хатолар устида ишлаш", "mist_sub": "{n} та савол — 2 марта кетма-кет тўғри топсангиз рўйхатдан чиқади", "mist_none": "Хато қилинган саволлар йўқ. Тест ишланг — хато топилган саволлар шу ерга автоматик тушади.", "mist_start": "Хатоларни қайта ишлаш", "mist_clear": "Рўйхатни тозалаш", "mist_clear_q": "Хатолар рўйхати тозалансинми?", "exams": "Имтиҳонлар тарихи", "exams_none": "Ҳали имтиҳон режимида тест топширилмаган.", "exam_best": "Энг яхши натижа: {p}%", "exam_trend_up": "Натижа олдингисидан {d}% яхшиланди 📈", "exam_trend_down": "Натижа олдингисидан {d}% пасайди — хатолар устида ишланг", "weak_hint": "Маслаҳат: аввал «Хатолар устида ишлаш»ни бажаринг, сўнг имтиҳон режимида ўзингизни синанг.", "home_goal": "Бугун: {a}/{g} савол", "home_open": "Натижаларни кўриш ›", "res_mist": "Хатолар устида ишлаш ({n})", "res_progress": "Менинг натижаларим", "res_goal_done": "🎯 Бугунги мақсад бажарилди!", "res_goal_left": "🎯 Бугунги мақсадгача {n} та савол қолди", "days": "Ду,Се,Ч,Па,Жу,Ш,Я", "privacy": "Натижалар фақат телефонингизда сақланади."}, "ru": {"title": "Мои результаты", "sub": "Цель дня, ошибки и история экзаменов", "goal_title": "Цель на сегодня", "goal_of": "{a} / {g} вопросов", "goal_done": "Отлично! Цель на сегодня выполнена ✅", "goal_left": "До цели осталось {n} вопросов", "goal_pick": "Выберите дневную цель", "total": "Всего ответов", "acc": "Правильных ответов", "streak": "Дней подряд", "chart": "Последние 14 дней", "chart_legend": "Светлый — ответы, тёмный — правильные", "chart_empty": "Пока нет данных. Решите несколько тестов — график появится здесь.", "bank": "Пройдено вопросов базы", "bank_of": "Просмотрено {s} из {t}", "mist_title": "Работа над ошибками", "mist_sub": "{n} вопр. — уходит из списка после 2 верных ответов подряд", "mist_none": "Ошибок пока нет. Решайте тесты — вопросы с ошибками попадут сюда автоматически.", "mist_start": "Повторить ошибки", "mist_clear": "Очистить список", "mist_clear_q": "Очистить список ошибок?", "exams": "История экзаменов", "exams_none": "Вы ещё не проходили режим экзамена.", "exam_best": "Лучший результат: {p}%", "exam_trend_up": "Результат лучше предыдущего на {d}% 📈", "exam_trend_down": "Результат ниже предыдущего на {d}% — поработайте над ошибками", "weak_hint": "Совет: сначала пройдите «Работу над ошибками», затем проверьте себя в режиме экзамена.", "home_goal": "Сегодня: {a}/{g} вопросов", "home_open": "Смотреть результаты ›", "res_mist": "Работа над ошибками ({n})", "res_progress": "Мои результаты", "res_goal_done": "🎯 Цель на сегодня выполнена!", "res_goal_left": "🎯 До цели дня осталось {n}", "days": "Пн,Вт,Ср,Чт,Пт,Сб,Вс", "privacy": "Результаты хранятся только на вашем телефоне."}, "en": {"title": "My progress", "sub": "Daily goal, mistakes and exam history", "goal_title": "Today's goal", "goal_of": "{a} / {g} questions", "goal_done": "Well done! Today's goal is complete ✅", "goal_left": "{n} more questions to reach the goal", "goal_pick": "Choose a daily goal", "total": "Total answers", "acc": "Correct answers", "streak": "Day streak", "chart": "Last 14 days", "chart_legend": "Light — answered, dark — correct", "chart_empty": "No data yet. Solve a few tests and the chart will appear here.", "bank": "Question bank covered", "bank_of": "{s} of {t} questions seen", "mist_title": "Work on mistakes", "mist_sub": "{n} questions — removed after 2 correct answers in a row", "mist_none": "No mistakes yet. Solve tests — questions you miss are collected here automatically.", "mist_start": "Review mistakes", "mist_clear": "Clear list", "mist_clear_q": "Clear the mistakes list?", "exams": "Exam history", "exams_none": "You haven't taken an exam yet.", "exam_best": "Best result: {p}%", "exam_trend_up": "Up {d}% from the previous exam 📈", "exam_trend_down": "Down {d}% from the previous exam — review your mistakes", "weak_hint": "Tip: first work on your mistakes, then test yourself in exam mode.", "home_goal": "Today: {a}/{g} questions", "home_open": "View progress ›", "res_mist": "Work on mistakes ({n})", "res_progress": "My progress", "res_goal_done": "🎯 Today's goal complete!", "res_goal_left": "🎯 {n} left to today's goal", "days": "Mo,Tu,We,Th,Fr,Sa,Su", "privacy": "Your results are stored only on your phone."}};
+function PT(k){ const L = PRG_T[state.lang] || PRG_T.uz_lat; return L[k] || PRG_T.uz_lat[k] || k; }
+const MISTAKES_KEY = 'app_mistakes_v1', DAILY_KEY = 'app_daily_v1', EXAMS_KEY = 'app_exam_hist_v1', GOAL_KEY = 'app_daily_goal_v1';
+const GOAL_OPTIONS = [10, 20, 30, 50];
+const prog = { mistakes:{}, daily:{}, exams:[], goal:20 };
+function isoDay(d){ d = d || new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+async function loadProgress(){
+  const rd = async (k)=>{ try{ return JSON.parse(await storageGet(k) || 'null'); }catch(e){ return null; } };
+  const m = await rd(MISTAKES_KEY); if(m && typeof m === 'object') prog.mistakes = m;
+  const dl = await rd(DAILY_KEY); if(dl && typeof dl === 'object') prog.daily = dl;
+  const ex = await rd(EXAMS_KEY); if(Array.isArray(ex)) prog.exams = ex;
+  const g = await rd(GOAL_KEY); if(GOAL_OPTIONS.includes(g)) prog.goal = g;
+}
+function saveProgress(){
+  storageSet(MISTAKES_KEY, JSON.stringify(prog.mistakes));
+  storageSet(DAILY_KEY, JSON.stringify(prog.daily));
+  storageSet(EXAMS_KEY, JSON.stringify(prog.exams));
+}
+function pruneDaily(){
+  const keys = Object.keys(prog.daily).sort();
+  while(keys.length > 120){ delete prog.daily[keys.shift()]; }
+}
+// Bitta javobni hisobga olish: kunlik statistika + xatolar ro'yxati
+function recordAnswer(q, correct, specialtyKey, countDaily){
+  if(!q || q.id === undefined) return;
+  if(countDaily !== false){
+    const day = isoDay();
+    const dd = prog.daily[day] || (prog.daily[day] = { a:0, c:0 });
+    dd.a += 1; if(correct) dd.c += 1;
+    pruneDaily();
+  }
+  const sk = specialtyKey || state.activeSpecialtyKey;
+  const m = prog.mistakes[sk] || (prog.mistakes[sk] = {});
+  if(!correct){
+    const e = m[q.id] || { w:0, s:0 };
+    e.w += 1; e.s = 0; e.t = Date.now();
+    m[q.id] = e;
+  } else if(m[q.id]){
+    m[q.id].s = (m[q.id].s || 0) + 1;
+    if(m[q.id].s >= 2) delete m[q.id]; // ketma-ket 2 marta to'g'ri — o'zlashtirildi
+  }
+}
+function mistakeCount(sk){ return Object.keys(prog.mistakes[sk || state.activeSpecialtyKey] || {}).length; }
+function todayAnswered(){ const dd = prog.daily[isoDay()]; return dd ? dd.a : 0; }
+function setGoal(g){ prog.goal = g; storageSet(GOAL_KEY, JSON.stringify(g)); render(); }
+function recordExam(n, c, sec){
+  prog.exams.push({ d:Date.now(), sk:state.activeSpecialtyKey, tk:(state.toifa && state.toifa.key) || '', n, c, sec });
+  if(prog.exams.length > 40) prog.exams = prog.exams.slice(-40);
+  saveProgress();
+}
+async function startMistakeReview(){
+  if(!state.toifa) state.toifa = TOIFA[0];
+  state.mode = 'test'; state.qIndex = 0; state.score = 0; state.wrongCount = 0;
+  state.selectedOpt = null; state.showPaywall = false; state.quizLoadError = false;
+  state.quizLoading = true;
+  state.screen = 'quiz';
+  render();
+  try{
+    const pool = await loadSpecialtyData(state.activeSpecialtyKey);
+    const m = prog.mistakes[state.activeSpecialtyKey] || {};
+    const list = pool.filter(q => m[q.id]);
+    // eng ko'p xato qilinganlar oldinda, so'ng aralashtiriladi
+    list.sort((a,b)=> (m[b.id].w - m[a.id].w));
+    state.quizQuestions = shuffle(list.slice(0, 20));
+  }catch(e){ state.quizLoadError = true; state.quizQuestions = []; }
+  state.quizLoading = false;
+  if(!state.quizLoadError && state.quizQuestions.length === 0){ state.screen = 'progress'; }
+  render();
+}
+function specialtyName(sk){ const s = SPECIALTIES.find(x=>x.key===sk); return s ? s.name : sk; }
+function toifaTitle(tk){ const tf = TOIFA.find(x=>x.key===tk); return tf ? tf['title_'+state.lang] : ''; }
+function openProgress(){
+  state.screen = 'progress';
+  render();
+  // Savollar bazasi hajmini bilish uchun (keshda bo'lmasa) yuklab olamiz
+  if(!SPECIALTY_DATA_CACHE[state.activeSpecialtyKey]){
+    loadSpecialtyData(state.activeSpecialtyKey).then(()=>{ if(state.screen === 'progress') render(); }).catch(()=>{});
+  }
+}
+function progressBar(pct, color){
+  const wrap = el('div',{style:'height:10px; background:var(--line); border-radius:6px; overflow:hidden; margin:8px 0 4px;'});
+  wrap.appendChild(el('div',{style:`height:100%; width:${Math.max(0,Math.min(100,pct))}%; background:${color||'var(--accent)'}; border-radius:6px; transition:width .3s;`}));
+  return wrap;
+}
+function progCard(){ return el('div',{style:'background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-l); padding:14px 16px; margin-bottom:12px;'}); }
+function progTitle(s){ const d = el('div',{style:'font-weight:700; font-size:14px;'}); d.appendChild(txt(s)); return d; }
+function progSub(s){ const d = el('div',{style:'font-size:12.5px; opacity:0.65; margin-top:3px;'}); d.appendChild(txt(s)); return d; }
+function last14Chart(){
+  const days = [];
+  for(let i=13;i>=0;i--){ const d = new Date(); d.setDate(d.getDate()-i); days.push(d); }
+  const vals = days.map(d => prog.daily[isoDay(d)] || { a:0, c:0 });
+  const max = Math.max(prog.goal, ...vals.map(v=>v.a));
+  const W = 320, H = 130, bw = W/14, top = 8, base = H - 22;
+  const names = PT('days').split(',');
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${PT('chart')}" style="display:block">`;
+  const gy = base - (prog.goal/max)*(base-top);
+  svg += `<line x1="0" x2="${W}" y1="${gy}" y2="${gy}" stroke="var(--tier3)" stroke-width="1" stroke-dasharray="4 3" opacity="0.8"/>`;
+  vals.forEach((v,i)=>{
+    const x = i*bw + 3, w = bw - 6;
+    const ha = (v.a/max)*(base-top), hc = (v.c/max)*(base-top);
+    if(v.a > 0){
+      svg += `<rect x="${x}" y="${base-ha}" width="${w}" height="${ha}" rx="3" fill="var(--accent)" opacity="0.3"/>`;
+      svg += `<rect x="${x}" y="${base-hc}" width="${w}" height="${hc}" rx="3" fill="var(--accent)"/>`;
+    }
+    const wd = (days[i].getDay()+6)%7;
+    svg += `<text x="${x+w/2}" y="${H-6}" font-size="9" text-anchor="middle" fill="currentColor" opacity="${i===13?1:0.55}">${names[wd]}</text>`;
+  });
+  svg += `</svg>`;
+  return { svg, any: vals.some(v=>v.a>0) };
+}
+function renderProgress(root){
+  renderTopbar(root, true, goHome);
+  const content = el('div',{class:'content'});
+  const h = el('div',{class:'section-label'}); h.appendChild(txt(PT('title'))); content.appendChild(h);
+
+  // 1) Bugungi maqsad
+  {
+    const c = progCard();
+    const a = todayAnswered(), g = prog.goal;
+    c.appendChild(progTitle('🎯 ' + PT('goal_title')));
+    c.appendChild(progSub(PT('goal_of').replace('{a}', a).replace('{g}', g)));
+    c.appendChild(progressBar(a/g*100));
+    c.appendChild(progSub(a >= g ? PT('goal_done') : PT('goal_left').replace('{n}', g-a)));
+    const pickL = el('div',{style:'font-size:12px; opacity:0.6; margin:10px 0 6px;'}); pickL.appendChild(txt(PT('goal_pick'))); c.appendChild(pickL);
+    const row = el('div',{style:'display:flex; gap:8px;'});
+    GOAL_OPTIONS.forEach(o=>{
+      const on = o === g;
+      const b = el('button',{style:`flex:1; padding:9px 0; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; border:1.5px solid ${on?'var(--accent)':'var(--line)'}; background:${on?'var(--accent)':'transparent'}; color:${on?'var(--ink-solid)':'var(--ink)'};`, onclick:()=>setGoal(o)});
+      b.appendChild(txt(String(o)));
+      row.appendChild(b);
+    });
+    c.appendChild(row);
+    content.appendChild(c);
+  }
+
+  // 2) Umumiy ko'rsatkichlar
+  {
+    const row = el('div',{style:'display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px;'});
+    const acc = state.totalTestAnswered > 0 ? Math.round(state.totalTestCorrect/state.totalTestAnswered*100) : 0;
+    [[String(state.totalTestAnswered), PT('total')], [acc+'%', PT('acc')], ['🔥 '+(state.streakCount||0), PT('streak')]].forEach(([v,l])=>{
+      const b = el('div',{style:'background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:12px 6px; text-align:center;'});
+      const vv = el('div',{style:'font-weight:800; font-size:18px;'}); vv.appendChild(txt(v)); b.appendChild(vv);
+      const ll = el('div',{style:'font-size:11px; opacity:0.6; margin-top:2px;'}); ll.appendChild(txt(l)); b.appendChild(ll);
+      row.appendChild(b);
+    });
+    content.appendChild(row);
+  }
+
+  // 3) 14 kunlik grafik
+  {
+    const c = progCard();
+    c.appendChild(progTitle('📊 ' + PT('chart')));
+    const ch = last14Chart();
+    if(ch.any){
+      const box = el('div',{style:'margin-top:10px;', html:ch.svg}); c.appendChild(box);
+      c.appendChild(progSub(PT('chart_legend')));
+    } else c.appendChild(progSub(PT('chart_empty')));
+    content.appendChild(c);
+  }
+
+  // 4) Xatolar ustida ishlash
+  {
+    const c = progCard();
+    const n = mistakeCount();
+    c.appendChild(progTitle('🧩 ' + PT('mist_title') + ' — ' + specialtyName(state.activeSpecialtyKey)));
+    if(n > 0){
+      c.appendChild(progSub(PT('mist_sub').replace('{n}', n)));
+      const b = el('button',{class:'next-btn', style:'margin-top:10px;', onclick:startMistakeReview}); b.appendChild(txt(PT('mist_start'))); c.appendChild(b);
+      const clr = el('div',{style:'text-align:center; font-size:12px; opacity:0.5; margin-top:10px; cursor:pointer;', onclick:()=>{ if(confirm(PT('mist_clear_q'))){ prog.mistakes[state.activeSpecialtyKey] = {}; saveProgress(); render(); } }});
+      clr.appendChild(txt(PT('mist_clear'))); c.appendChild(clr);
+    } else c.appendChild(progSub(PT('mist_none')));
+    content.appendChild(c);
+  }
+
+  // 5) Savollar bazasi qamrovi
+  {
+    const pool = SPECIALTY_DATA_CACHE[state.activeSpecialtyKey];
+    if(pool && pool.length){
+      const seen = {};
+      Object.keys(state.seenQuestions || {}).forEach(k=>{ if(k.indexOf(state.activeSpecialtyKey + ':') === 0) Object.assign(seen, state.seenQuestions[k]); });
+      const s = Math.min(pool.length, Object.keys(seen).length);
+      const c = progCard();
+      c.appendChild(progTitle('📚 ' + PT('bank')));
+      c.appendChild(progressBar(s/pool.length*100, 'var(--tier2)'));
+      c.appendChild(progSub(PT('bank_of').replace('{s}', s).replace('{t}', pool.length)));
+      content.appendChild(c);
+    }
+  }
+
+  // 6) Imtihonlar tarixi
+  {
+    const c = progCard();
+    c.appendChild(progTitle('⏱ ' + PT('exams')));
+    const list = prog.exams.slice().reverse();
+    if(!list.length) c.appendChild(progSub(PT('exams_none')));
+    else{
+      const pcts = list.map(e => Math.round(e.c/e.n*100));
+      c.appendChild(progSub(PT('exam_best').replace('{p}', Math.max(...pcts))));
+      if(list.length >= 2){
+        const diff = pcts[0] - pcts[1];
+        if(diff > 0) c.appendChild(progSub(PT('exam_trend_up').replace('{d}', diff)));
+        else if(diff < 0) c.appendChild(progSub(PT('exam_trend_down').replace('{d}', -diff)));
+      }
+      list.slice(0, 10).forEach((e,i)=>{
+        const p = pcts[i];
+        const d = new Date(e.d);
+        const row = el('div',{style:'display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-top:1px solid var(--line); margin-top:8px; font-size:12.5px;'});
+        const left = el('div',{});
+        const l1 = el('div',{style:'font-weight:600;'}); l1.appendChild(txt(`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()} · ${toifaTitle(e.tk)}`)); left.appendChild(l1);
+        const l2 = el('div',{style:'opacity:0.6; font-size:11.5px;'}); l2.appendChild(txt(specialtyName(e.sk) + ' · ' + String(Math.floor(e.sec/60)).padStart(2,'0') + ':' + String(e.sec%60).padStart(2,'0'))); left.appendChild(l2);
+        row.appendChild(left);
+        const r = el('div',{style:`font-weight:800; color:${p>=70?'var(--accent)':(p>=50?'var(--tier3)':'var(--danger)')};`}); r.appendChild(txt(`${e.c}/${e.n} · ${p}%`));
+        row.appendChild(r);
+        c.appendChild(row);
+      });
+    }
+    content.appendChild(c);
+  }
+
+  const tip = el('div',{style:'font-size:12px; opacity:0.6; text-align:center; margin:4px 8px 6px;'}); tip.appendChild(txt(PT('weak_hint'))); content.appendChild(tip);
+  const pv = el('div',{style:'font-size:11.5px; opacity:0.45; text-align:center; margin-bottom:10px;'}); pv.appendChild(txt('🔒 ' + PT('privacy'))); content.appendChild(pv);
+  root.appendChild(content);
+  renderBottomNav(root, 'home');
+}
+// ===================== /MENING NATIJALARIM =====================
+
 const AI_USAGE_KEY = 'app_ai_usage';
 async function loadAiUsage(){
   const stored = await storageGet(AI_USAGE_KEY);
@@ -1394,6 +1622,9 @@ function finishExam(){
   state.examScore = correct;
   state.examWrongList = wrongList;
   state.examTimeUsedSec = EXAM_SECONDS - state.examTimeLeft;
+  state.quizQuestions.forEach((q, i)=>{ const g = state.examAnswers[i]; recordAnswer(q, g === q.correct_index, null, g !== null); if(g !== null){ state.totalTestAnswered += 1; if(g === q.correct_index) state.totalTestCorrect += 1; } });
+  saveStats();
+  recordExam(state.quizQuestions.length, correct, state.examTimeUsedSec);
   state.screen = 'exam-result';
   render();
 }
@@ -1413,6 +1644,8 @@ function selectOption(idx){
   if(idx === q.correct_index){ state.score += 1; state.totalTestCorrect += 1; }
   else state.wrongCount += 1;
   saveStats();
+  recordAnswer(q, idx === q.correct_index);
+  saveProgress();
   render();
 }
 
@@ -1652,6 +1885,15 @@ function renderHome(root){
   const rTitle = el('div',{class:'readiness-title'}); rTitle.appendChild(txt(t().readiness_title)); readinessText.appendChild(rTitle);
   const rSub = el('div',{class:'readiness-sub'}); rSub.appendChild(txt(t().readiness_sub)); readinessText.appendChild(rSub);
   readinessCard.appendChild(readinessText);
+  readinessCard.style.cursor = 'pointer';
+  readinessCard.onclick = openProgress;
+  {
+    const a = todayAnswered(), g = prog.goal;
+    const gl = el('div',{style:'font-size:12px; font-weight:600; margin-top:6px;'}); gl.appendChild(txt('🎯 ' + PT('home_goal').replace('{a}', a).replace('{g}', g) + (a >= g ? ' ✅' : '')));
+    readinessText.appendChild(gl);
+    readinessText.appendChild(progressBar(a/g*100));
+    const op = el('div',{style:'font-size:11.5px; color:var(--accent); font-weight:600;'}); op.appendChild(txt(PT('home_open'))); readinessText.appendChild(op);
+  }
   content.appendChild(readinessCard);
 
   // ---- 4. Tezkor xizmatlar: AI, kalkulyatorlar, MKB-10, tezkor raqamlar ----
@@ -2050,6 +2292,18 @@ function renderToifaScreen(root){
     lo.appendChild(lbody);
     const lch = el('div',{class:'chev'}); lch.appendChild(txt(listen.playing ? '🔊' : '›')); lo.appendChild(lch);
     content.appendChild(lo);
+  }
+
+  { // Xatolar ustida ishlash
+    const mc = mistakeCount();
+    const mo = el('div',{class:'ticket', style:tierBadgeStyle('--grad-3'), onclick: mc > 0 ? startMistakeReview : openProgress});
+    const mb = el('div',{class:'badge'}); mb.appendChild(txt('🧩')); mo.appendChild(mb);
+    const mbody = el('div',{class:'ticket-body'});
+    const mt = el('div',{class:'ticket-title'}); mt.appendChild(txt(PT('mist_title') + (mc > 0 ? ' (' + mc + ')' : ''))); mbody.appendChild(mt);
+    const ms = el('div',{class:'ticket-sub'}); ms.appendChild(txt(mc > 0 ? PT('mist_sub').replace('{n}', mc) : PT('mist_none'))); mbody.appendChild(ms);
+    mo.appendChild(mbody);
+    const mch = el('div',{class:'chev'}); mch.appendChild(txt('›')); mo.appendChild(mch);
+    content.appendChild(mo);
   }
 
   const flaggedCount = flaggedCountFor(state.activeSpecialtyKey);
@@ -2795,6 +3049,19 @@ function renderResult(root){
       content.appendChild(subBanner);
     }
   }
+  {
+    const a = todayAnswered(), g = prog.goal;
+    const gl = el('div',{style:'text-align:center; font-size:13px; font-weight:600; margin:4px 0 10px;'});
+    gl.appendChild(txt(a >= g ? PT('res_goal_done') : PT('res_goal_left').replace('{n}', g-a)));
+    content.appendChild(gl);
+    const mc = mistakeCount();
+    if(mc > 0){
+      const mb = el('button',{class:'next-btn', onclick:startMistakeReview}); mb.appendChild(txt('🧩 ' + PT('res_mist').replace('{n}', mc)));
+      content.appendChild(mb);
+    }
+    const pb = el('button',{class:'restart-btn', onclick:openProgress}); pb.appendChild(txt('📊 ' + PT('res_progress')));
+    content.appendChild(pb);
+  }
   const restart = el('button',{class:'restart-btn', onclick:goHome}); restart.appendChild(txt(t().restart));
   content.appendChild(restart);
   root.appendChild(content);
@@ -2822,6 +3089,11 @@ function renderExamResult(root){
   }});
   shareBtn.appendChild(txt(t().exam_share_btn));
   content.appendChild(shareBtn);
+  {
+    const mc = mistakeCount();
+    if(mc > 0){ const mb = el('button',{class:'next-btn', style:'margin-top:8px;', onclick:startMistakeReview}); mb.appendChild(txt('🧩 ' + PT('res_mist').replace('{n}', mc))); content.appendChild(mb); }
+    const pb = el('button',{class:'restart-btn', onclick:openProgress}); pb.appendChild(txt('📊 ' + PT('res_progress'))); content.appendChild(pb);
+  }
 
   if(state.examWrongList && state.examWrongList.length > 0){
     const reviewLabel = el('div',{class:'section-label'}); reviewLabel.appendChild(txt(t().exam_review_title));
@@ -3091,6 +3363,7 @@ async function initPinFlow(){
   }
   await loadFreeUsage();
   await loadStats();
+  await loadProgress();
   await loadBoxState();
   await loadAndUpdateStreak();
   await loadAiUsage();
@@ -5167,6 +5440,7 @@ function render(){
   else if(state.screen==='listen') renderListen(root);
   else if(state.screen==='result') renderResult(root);
   else if(state.screen==='exam-result') renderExamResult(root);
+  else if(state.screen==='progress') renderProgress(root);
   else if(state.screen==='referral') renderReferral(root);
   else if(state.screen==='contact') renderContact(root);
   else if(state.screen==='faq') renderFaq(root);
