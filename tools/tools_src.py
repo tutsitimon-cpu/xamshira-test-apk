@@ -515,3 +515,82 @@ FIRST_AID = [
         ("Hushsiz bo'lsa — og'ziga hech narsa bermang, yonboshiga yotqizib, 103 ga qo'ng'iroq qiling.", "Без сознания — ничего в рот, уложите на бок, звоните 103.", "If unconscious — nothing by mouth, recovery position, call 103."),
     ]},
 ]
+
+UI.update({
+    "tab_vacc": ("Emlash kalendari", "Календарь прививок", "Vaccination calendar"),
+    "d_vacc": ("Bolangizning emlash sanalari", "Даты прививок вашего ребёнка", "Your child's vaccination dates"),
+    "tab_growth": ("Bola o'sishi", "Рост ребёнка", "Child growth"),
+    "d_growth": ("Vazn va bo'yni JSST me'yori bilan solishtirish", "Сравнение веса и роста с нормами ВОЗ", "Compare weight and length with WHO standards"),
+    "birth_date": ("Bolaning tug'ilgan sanasi", "Дата рождения ребёнка", "Child's date of birth"),
+    "vacc_next": ("Navbatdagi emlash", "Следующая прививка", "Next vaccination"),
+    "vacc_due": ("Muddati keldi yoki o'tdi", "Срок наступил или прошёл", "Due or overdue"),
+    "vacc_done": ("Qilindi", "Сделано", "Done"),
+    "vacc_mark": ("Qilindi deb belgilash", "Отметить как сделанное", "Mark as done"),
+    "vacc_note": ("Kalendar O'zbekiston Sanitariya-epidemiologik osoyishtalik va jamoat salomatligi qo'mitasi e'lon qilgan milliy emlash kalendari (2026-yil sentabr) asosida tuzilgan. Epidemiologik vaziyatga qarab o'zgarishi mumkin (masalan, qizamiqqa qarshi 6 oylikda qo'shimcha emlash). Aniq sana va qarshi ko'rsatmalarni oilaviy poliklinikangiz yoki patronaj hamshirangiz belgilaydi. Emlash bepul.", "Календарь составлен по национальному календарю прививок, опубликованному Комитетом санэпидблагополучия и общественного здоровья Узбекистана (сентябрь 2026). Может меняться по эпидситуации (например, дополнительная прививка от кори в 6 месяцев). Точные даты и противопоказания определяет ваша семейная поликлиника или патронажная медсестра. Прививки бесплатны.", "Based on the national calendar published by Uzbekistan's Sanitary-Epidemiological Committee (September 2026). It may change with the epidemic situation (e.g. an extra measles dose at 6 months). Your family clinic or visiting nurse sets exact dates and checks contraindications. Vaccination is free."),
+    "growth_measure": ("O'lchangan sana", "Дата измерения", "Measurement date"),
+    "length_cm": ("Bo'yi (sm)", "Рост/длина (см)", "Length/height (cm)"),
+    "head_cm": ("Bosh aylanasi (sm)", "Окружность головы (см)", "Head circumference (cm)"),
+    "boy": ("O'g'il", "Мальчик", "Boy"),
+    "girl": ("Qiz", "Девочка", "Girl"),
+    "age_months": ("Yoshi", "Возраст", "Age"),
+    "months": ("oy", "мес.", "mo"),
+    "g_wfa": ("Yoshga nisbatan vazn", "Вес к возрасту", "Weight-for-age"),
+    "g_lfa": ("Yoshga nisbatan bo'y", "Рост к возрасту", "Length/height-for-age"),
+    "g_hc": ("Yoshga nisbatan bosh aylanasi", "Окружность головы к возрасту", "Head circumference-for-age"),
+    "g_median": ("me'yor o'rtachasi", "медиана", "median"),
+    "g_only5": ("Hisob 0–5 yosh (0–60 oy) bolalar uchun.", "Расчёт для детей 0–5 лет (0–60 мес.).", "For children aged 0–5 years (0–60 months)."),
+    "g_note": ("JSST bolalar o'sishi standartlari (z-ball) asosida. O'lchov xatosi natijaga ta'sir qiladi: vazn kiyimsiz, 2 yoshgacha bo'y yotgan holda o'lchanadi. Me'yordan chetlanish bo'lsa, xulosa shifokor yoki patronaj hamshira bilan chiqariladi.", "По стандартам роста детей ВОЗ (z-оценка). Ошибка измерения влияет на результат: вес без одежды, до 2 лет длина лёжа. При отклонениях вывод делает врач или патронажная медсестра.", "Based on WHO child growth standards (z-scores). Measurement errors affect results: weigh without clothes, measure length lying down under 2. Any deviation should be reviewed by a doctor or nurse."),
+    "preg_save": ("Sanani eslab qolish", "Запомнить дату", "Remember this date"),
+    "preg_now": ("Hozirgi davr", "Сейчас", "Right now"),
+    "preg_todo": ("Nima qilish kerak", "Что сделать", "What to do"),
+    "preg_danger": ("Xavfli belgilar — darhol 103 yoki shifokor", "Тревожные признаки — сразу 103 или к врачу", "Danger signs — call 103 or see a doctor now"),
+})
+
+EMERGENCY_NUMS = [
+    ("103", ("Tez tibbiy yordam", "Скорая помощь", "Ambulance")),
+    ("101", ("Yong'in xavfsizligi", "Пожарная служба", "Fire service")),
+    ("102", ("Ichki ishlar (militsiya)", "Полиция", "Police")),
+    ("104", ("Gaz avariya xizmati", "Аварийная газовая служба", "Gas emergency")),
+]
+
+# Milliy emlash kalendari (manba: SEO va JSQ axborot xizmati, yuz.uz, 2026-09-24)
+VACCINES = [
+    (0, "d", ("VGB-1 — virusli gepatit B", "ВГВ-1 — вирусный гепатит B", "HepB-1 — hepatitis B")),
+    (2, "d", ("BSJ (BCG) — sil", "БЦЖ — туберкулёз", "BCG — tuberculosis")),
+    (2, "m", ("OPV-1, Rota-1, Pnevmo-1, Penta-1 (difteriya, ko'kyo'tal, qoqshol, gepatit B, Hib)", "ОПВ-1, Рота-1, Пневмо-1, Пента-1 (дифтерия, коклюш, столбняк, гепатит B, Hib)", "OPV-1, Rota-1, PCV-1, Penta-1 (diphtheria, pertussis, tetanus, HepB, Hib)")),
+    (3, "m", ("OPV-2, Rota-2, Pnevmo-2, Penta-2", "ОПВ-2, Рота-2, Пневмо-2, Пента-2", "OPV-2, Rota-2, PCV-2, Penta-2")),
+    (4, "m", ("OPV-3, Rota-3, Penta-3, IPV-1 (poliomiyelit)", "ОПВ-3, Рота-3, Пента-3, ИПВ-1 (полиомиелит)", "OPV-3, Rota-3, Penta-3, IPV-1 (polio)")),
+    (9, "m", ("IPV-2 — poliomiyelit", "ИПВ-2 — полиомиелит", "IPV-2 — polio")),
+    (12, "m", ("QPQ-1 (qizamiq, parotit, qizilcha), Pnevmo-3", "КПК-1 (корь, паротит, краснуха), Пневмо-3", "MMR-1 (measles, mumps, rubella), PCV-3")),
+    (16, "m", ("AKDS-4, OPV-4", "АКДС-4, ОПВ-4", "DTP-4, OPV-4")),
+    (6, "y", ("QPQ-2 (qizamiq, parotit, qizilcha)", "КПК-2 (корь, паротит, краснуха)", "MMR-2 (measles, mumps, rubella)")),
+    (7, "y", ("ADS-M-5, OPV-5", "АДС-М-5, ОПВ-5", "Td-5, OPV-5")),
+    (9, "y", ("VPCH — odam papilloma virusi (qizlar uchun)", "ВПЧ — вирус папилломы человека (девочкам)", "HPV — human papillomavirus (girls)")),
+    (16, "y", ("ADS-M-6 — difteriya, qoqshol", "АДС-М-6 — дифтерия, столбняк", "Td-6 — diphtheria, tetanus")),
+]
+
+PREG_STAGES = [
+    (4, 12, ("1-trimestr boshlanishi: homila a'zolari shakllanadi. Ko'ngil aynishi, holsizlik bo'lishi mumkin.", "Начало 1 триместра: формируются органы плода. Возможны тошнота и слабость.", "Early first trimester: the baby's organs form. Nausea and tiredness are common."),
+     ("12 haftagacha oilaviy poliklinikada ro'yxatdan o'ting (almashinuv kartasi ochiladi). Foliy kislotasi va temir preparatlarini shifokor tavsiyasiga ko'ra iching. 11–14 haftada skrining UTT. Chekish, spirtli ichimlik va o'zboshimcha dori — man etiladi.", "Встаньте на учёт в семейной поликлинике до 12 недель (оформляется обменная карта). Фолиевая кислота и железо — по назначению. Скрининговое УЗИ в 11–14 недель. Курение, алкоголь и самолечение исключены.", "Register at your family clinic before 12 weeks (exchange card is opened). Take folic acid and iron as advised. Screening ultrasound at 11–14 weeks. No smoking, alcohol or self-medication.")),
+    (13, 20, ("2-trimestr: ko'ngil aynishi kamayadi, qorin kattalasha boshlaydi. 18–20 haftada homila qimirlashi seziladi.", "2 триместр: тошнота уменьшается, живот растёт. В 18–20 недель ощущаются шевеления.", "Second trimester: nausea eases, the bump grows. Movements are felt around 18–20 weeks."),
+     ("18–21 haftada ikkinchi skrining UTT. Qon bosimi, vazn va tahlillarni belgilangan muddatda tekshiring. Kamqonlikka qarshi temirga boy ovqatlaning. Patronaj hamshirasining tashriflarini o'tkazib yubormang.", "Второе скрининговое УЗИ в 18–21 недель. Давление, вес и анализы — в срок. Питание, богатое железом. Не пропускайте визиты патронажной медсестры.", "Second screening scan at 18–21 weeks. Check BP, weight and tests on schedule. Eat iron-rich food. Don't miss nurse home visits.")),
+    (21, 27, ("2-trimestr oxiri: homila faol qimirlaydi, ona vazni sekin ortadi.", "Конец 2 триместра: активные шевеления, вес мамы постепенно растёт.", "Late second trimester: active movements, steady weight gain."),
+     ("Qandga tekshiruv (shifokor tavsiyasi bilan), qon bosimini nazorat qiling. Shishlar, bosh og'rig'i paydo bo'lsa — shifokorga ayting. Tug'ruqqa tayyorlov mashg'ulotlariga qatnashing.", "Проверка на сахар (по назначению), контроль давления. Отёки и головная боль — сообщите врачу. Посещайте занятия по подготовке к родам.", "Glucose check as advised, monitor BP. Report swelling or headaches. Attend birth preparation classes.")),
+    (28, 36, ("3-trimestr: homila tez o'sadi, nafas qisishi va jig'ildon qaynashi bo'lishi mumkin.", "3 триместр: плод быстро растёт, возможны одышка и изжога.", "Third trimester: the baby grows fast; breathlessness and heartburn are common."),
+     ("Homila qimirlashini har kuni kuzating — kamaysa, darhol shifokorga. Tug'ruqxonani tanlang, hujjatlar va kerakli narsalarni tayyorlang. Emizish haqida patronaj hamshira bilan suhbatlashing.", "Ежедневно следите за шевелениями — если уменьшились, сразу к врачу. Выберите роддом, подготовьте документы и вещи. Обсудите грудное вскармливание с медсестрой.", "Track movements daily — if they decrease, see a doctor at once. Choose a maternity hospital, prepare documents and a bag. Discuss breastfeeding with your nurse.")),
+    (37, 41, ("Muddatida tug'ruq davri (37–41 hafta).", "Доношенный срок (37–41 неделя).", "Full term (37–41 weeks)."),
+     ("Muntazam to'lg'oq (har 5–10 daqiqada), suv ketishi yoki qon ketishi bo'lsa — tug'ruqxonaga boring yoki 103 ga qo'ng'iroq qiling. Almashinuv kartasini doim yoningizda olib yuring.", "Регулярные схватки (каждые 5–10 минут), излитие вод или кровотечение — в роддом или звоните 103. Всегда носите обменную карту с собой.", "Regular contractions (every 5–10 minutes), waters breaking or bleeding — go to the maternity hospital or call 103. Always carry your exchange card.")),
+    (42, 45, ("Muddatdan o'tgan homiladorlik.", "Переношенная беременность.", "Post-term pregnancy."),
+     ("Shifokor nazorati majburiy — tug'ruq bo'yicha qarorni shifokor qabul qiladi.", "Обязательно наблюдение врача — решение о родах принимает врач.", "A doctor must monitor you and decide on delivery.")),
+]
+
+PREG_DANGER = [
+    ("Qindan qon ketishi", "Кровянистые выделения из влагалища", "Vaginal bleeding"),
+    ("Kuchli bosh og'rig'i, ko'z oldi qorong'ilashishi, yuz va qo'llarning shishishi", "Сильная головная боль, мушки перед глазами, отёки лица и рук", "Severe headache, blurred vision, swollen face and hands"),
+    ("Talvasa yoki hushdan ketish", "Судороги или потеря сознания", "Seizures or fainting"),
+    ("Qorinda kuchli og'riq", "Сильная боль в животе", "Severe abdominal pain"),
+    ("Homila qimirlashining kamayishi yoki to'xtashi", "Уменьшение или прекращение шевелений", "Baby moving less or not at all"),
+    ("Suv ketishi (muddatdan oldin)", "Излитие вод (до срока)", "Waters breaking early"),
+    ("Yuqori isitma, nafas qisishi", "Высокая температура, одышка", "High fever, breathlessness"),
+]
+UI["years_short"] = ("yosh", "лет", "y")

@@ -36,6 +36,11 @@ data = {
     "temp": [{"lvl": l, "text": L(t)} for l, t in S.TEMP],
     "spo2": [{"lvl": l, "text": L(t)} for l, t in S.SPO2],
     "weight_tips": [L(t) for t in S.WEIGHT_TIPS],
+    "emergency": [{"n": n, "t": L(t)} for n, t in S.EMERGENCY_NUMS],
+    "vaccines": [{"n": n, "u": u, "t": L(t)} for n, u, t in S.VACCINES],
+    "preg_stages": [{"a": a, "b": b, "now": L(x), "todo": L(y)} for a, b, x, y in S.PREG_STAGES],
+    "preg_danger": [L(t) for t in S.PREG_DANGER],
+    "who": json.load(open(os.path.join(os.path.dirname(__file__), "who", "who_lms_0_60.json"))),
     "first_aid": [{"t": L(f["t"]), "cpr": bool(f.get("cpr")), "s": [L(x) for x in f["s"]]} for f in S.FIRST_AID],
     "dict": [{"uz_lat": norm_lat(u), "uz_cyr": cyr(u), "ru": r, "lat": la} for u, r, la in S.DICT],
 }
