@@ -17,10 +17,19 @@ public class StepAlarmReceiver extends BroadcastReceiver {
         final Context ctx = context.getApplicationContext();
         final String action = intent != null ? intent.getAction() : null;
         final boolean boot = Intent.ACTION_BOOT_COMPLETED.equals(action);
-        StepStore.scheduleMidnight(ctx);
+        final boolean report = StepStore.ACTION_REPORT.equals(action);
+        if (report) {
+            StepStore.scheduleReport(ctx); // ertangi xabar
+        } else {
+            StepStore.scheduleMidnight(ctx);
+            if (boot) StepStore.scheduleReport(ctx);
+        }
         final SensorManager sm = (SensorManager) ctx.getSystemService(Context.SENSOR_SERVICE);
         final Sensor sensor = sm != null ? sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) : null;
-        if (sensor == null || !StepCounterPlugin.hasPermission(ctx)) return;
+        if (sensor == null || !StepCounterPlugin.hasPermission(ctx)) {
+            if (report) StepStore.postReport(ctx, StepStore.todaySteps(ctx));
+            return;
+        }
 
         final PendingResult pending = goAsync();
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -31,7 +40,10 @@ public class StepAlarmReceiver extends BroadcastReceiver {
                 if (done[0]) return;
                 done[0] = true;
                 try { sm.unregisterListener(this); } catch (Exception ignored) {}
-                try { StepStore.update(ctx, event.values[0], !boot); } catch (Exception ignored) {}
+                try {
+                    long steps = StepStore.update(ctx, event.values[0], !boot && !report);
+                    if (report) StepStore.postReport(ctx, steps);
+                } catch (Exception ignored) {}
                 pending.finish();
             }
             @Override
@@ -44,6 +56,7 @@ public class StepAlarmReceiver extends BroadcastReceiver {
                 if (done[0]) return;
                 done[0] = true;
                 try { sm.unregisterListener(listener); } catch (Exception ignored) {}
+                if (report) StepStore.postReport(ctx, StepStore.todaySteps(ctx));
                 pending.finish();
             }
         }, 8000);

@@ -36,6 +36,7 @@ data = {
     "temp": [{"lvl": l, "text": L(t)} for l, t in S.TEMP],
     "spo2": [{"lvl": l, "text": L(t)} for l, t in S.SPO2],
     "weight_tips": [L(t) for t in S.WEIGHT_TIPS],
+    "first_aid": [{"t": L(f["t"]), "cpr": bool(f.get("cpr")), "s": [L(x) for x in f["s"]]} for f in S.FIRST_AID],
     "dict": [{"uz_lat": norm_lat(u), "uz_cyr": cyr(u), "ru": r, "lat": la} for u, r, la in S.DICT],
 }
 

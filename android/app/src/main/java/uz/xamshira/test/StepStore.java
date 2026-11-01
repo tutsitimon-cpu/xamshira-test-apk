@@ -96,4 +96,72 @@ public class StepStore {
             am.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pi);
         }
     }
+
+    static final String ACTION_REPORT = "uz.xamshira.test.STEP_REPORT";
+
+    /** Kunlik qadamlar xabari sozlamalari (matnlar ilova tilida JS tomonidan beriladi). */
+    static void saveReport(Context ctx, boolean enabled, int hour, int minute, String title, String body, long goal) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putBoolean("r_on", enabled).putInt("r_h", hour).putInt("r_m", minute)
+            .putString("r_title", title).putString("r_body", body).putLong("r_goal", goal).apply();
+        if (enabled) scheduleReport(ctx); else cancelReport(ctx);
+    }
+
+    private static PendingIntent reportIntent(Context ctx) {
+        Intent i = new Intent(ctx, StepAlarmReceiver.class);
+        i.setAction(ACTION_REPORT);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= 23) flags |= PendingIntent.FLAG_IMMUTABLE;
+        return PendingIntent.getBroadcast(ctx, 7302, i, flags);
+    }
+
+    static void scheduleReport(Context ctx) {
+        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        if (!p.getBoolean("r_on", false)) return;
+        AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+        if (am == null) return;
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY, p.getInt("r_h", 21));
+        c.set(Calendar.MINUTE, p.getInt("r_m", 0));
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        if (c.getTimeInMillis() <= System.currentTimeMillis() + 1000) c.add(Calendar.DAY_OF_YEAR, 1);
+        if (Build.VERSION.SDK_INT >= 23) {
+            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), reportIntent(ctx));
+        } else {
+            am.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), reportIntent(ctx));
+        }
+    }
+
+    static void cancelReport(Context ctx) {
+        AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+        if (am != null) am.cancel(reportIntent(ctx));
+    }
+
+    /** Bugungi qadamlar haqida bildirishnoma ko'rsatadi. */
+    static void postReport(Context ctx, long steps) {
+        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        String title = p.getString("r_title", "Tibbiy Yordamchi");
+        String body = p.getString("r_body", "{steps}");
+        long goal = p.getLong("r_goal", 8000);
+        String text = body.replace("{steps}", String.valueOf(steps)).replace("{goal}", String.valueOf(goal));
+        android.app.NotificationManager nm = (android.app.NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null) return;
+        if (Build.VERSION.SDK_INT >= 26) {
+            android.app.NotificationChannel ch = new android.app.NotificationChannel("steps_daily", "Qadamlar", android.app.NotificationManager.IMPORTANCE_DEFAULT);
+            nm.createNotificationChannel(ch);
+        }
+        Intent open = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= 23) flags |= PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent content = open != null ? PendingIntent.getActivity(ctx, 7303, open, flags) : null;
+        androidx.core.app.NotificationCompat.Builder b = new androidx.core.app.NotificationCompat.Builder(ctx, "steps_daily")
+            .setSmallIcon(ctx.getApplicationInfo().icon)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setStyle(new androidx.core.app.NotificationCompat.BigTextStyle().bigText(text))
+            .setAutoCancel(true);
+        if (content != null) b.setContentIntent(content);
+        try { nm.notify(7304, b.build()); } catch (SecurityException ignored) {}
+    }
 }

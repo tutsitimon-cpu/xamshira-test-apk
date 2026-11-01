@@ -109,6 +109,18 @@ public class StepCounterPlugin extends Plugin {
         }, 4000);
     }
 
+    @PluginMethod
+    public void setDailyReport(PluginCall call) {
+        boolean enabled = Boolean.TRUE.equals(call.getBoolean("enabled", false));
+        int hour = call.getInt("hour", 21);
+        int minute = call.getInt("minute", 0);
+        String title = call.getString("title", "Tibbiy Yordamchi");
+        String body = call.getString("body", "{steps}");
+        long goal = call.getInt("goal", 8000);
+        StepStore.saveReport(getContext(), enabled, hour, minute, title, body, goal);
+        call.resolve();
+    }
+
     /** Bugungi qadamlar va oxirgi 7 kun tarixi. */
     private JSObject result(Context ctx, long today) {
         JSObject r = new JSObject();
